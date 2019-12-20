@@ -210,20 +210,15 @@ const OverPassLayer = L.FeatureGroup.extend({
     );
   },
 
-  _buildOverpassQueryFromQueryAndBounds(query, bounds) {
+  _buildOverpassUrlFromEndPointAndQuery(endPoint, query, bounds) {
     const sw = bounds._southWest;
     const ne = bounds._northEast;
     const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(',');
 
     query = query.replace(/(\/\/.*)/g, '');
-    query = query.replace(/(\{\{bbox\}\})/g, coordinates);
 
-    return query;
-  },
-
-  _buildOverpassUrlFromEndPointAndQuery(endPoint, query) {
     return `${endPoint}interpreter?data=[out:json][timeout:${this.options
-      .timeout}][bbox:{{bbox}}];${query}`;
+      .timeout}][bbox:{{${coordinates}}}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
@@ -296,10 +291,8 @@ const OverPassLayer = L.FeatureGroup.extend({
     const requestBounds = this._buildLargerBounds(bounds);
     const url = this._buildOverpassUrlFromEndPointAndQuery(
       this.options.endPoint,
-      this._buildOverpassQueryFromQueryAndBounds(
-        this.options.query,
-        requestBounds
-      )
+      this.options.query,
+      requestBounds
     );
     const request = new XMLHttpRequest();
     const beforeRequestResult = this.options.beforeRequest.call(this);
