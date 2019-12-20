@@ -8,10 +8,10 @@ const OverPassLayer = L.FeatureGroup.extend({
     debug: false,
     minZoom: 15,
     endPoint: 'https://overpass-api.de/api/',
-    query: '(node({{bbox}})[organic];node({{bbox}})[second_hand];);out qt;',
+    query: '(node[organic];node[second_hand];);out qt;',
     loadedBounds: [],
     markerIcon: null,
-    timeout: 30 * 1000, // Milliseconds
+    timeout: 30, // Seconds
     retryOnTimeout: false,
     noInitialRequest: false,
 
@@ -222,18 +222,18 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _buildOverpassUrlFromEndPointAndQuery(endPoint, query) {
-    return `${endPoint}interpreter?data=[out:json];${query}`;
+    return `${endPoint}interpreter?data=[out:json][timeout:${this.options
+      .timeout}][bbox:{{bbox}}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
     const width = Math.abs(bounds._northEast.lng - bounds._southWest.lng);
     const height = Math.abs(bounds._northEast.lat - bounds._southWest.lat);
-    const biggestDimension = width > height ? width : height;
 
-    bounds._southWest.lat -= biggestDimension / 2;
-    bounds._southWest.lng -= biggestDimension / 2;
-    bounds._northEast.lat += biggestDimension / 2;
-    bounds._northEast.lng += biggestDimension / 2;
+    bounds._southWest.lat -= height / 2;
+    bounds._southWest.lng -= width / 2;
+    bounds._northEast.lat += height / 2;
+    bounds._northEast.lng += width / 2;
 
     return L.latLngBounds(
       L.latLng(bounds._southWest.lat, bounds._southWest.lng).wrap(),
@@ -317,7 +317,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
 
     request.open('GET', url, true);
-    request.timeout = this.options.timeout;
+    request.timeout = this.options.timeout * 1000;
 
     request.ontimeout = () =>
       this._onRequestTimeout(request, url, requestBounds);
