@@ -218,7 +218,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     query = query.replace(/(\/\/.*)/g, '');
 
     return `${endPoint}interpreter?data=[out:json][timeout:${this.options
-      .timeout}][bbox:{{${coordinates}}}];${query}`;
+      .timeout}][bbox:${coordinates}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
