@@ -3,6 +3,7 @@ import ClipperLib from "js-clipper";
 import { openDB } from "idb";
 import "./OverPassLayer.css";
 import "./MinZoomIndicator";
+import md5 from "md5";
 
 const OverPassLayer = L.FeatureGroup.extend({
   options: {
@@ -73,18 +74,16 @@ const OverPassLayer = L.FeatureGroup.extend({
   async _initDB() {
     this._db = await openDB("leaflet-overpass-layer", 1, {
       upgrade(db) {
-        db.createObjectStore(this.options.query, {
-          autoIncrement: true
-        });
+        db.createObjectStore(md5(this.options.query), { autoIncrement: true });
       }
     });
 
-    let items = await this._db.getAll(this.options.query);
-    let keys = await this._db.getAllKeys(this.options.query);
+    let items = await this._db.getAll(md5(this.options.query));
+    let keys = await this._db.getAllKeys(md5(this.options.query));
 
     items.forEach((item, i) => {
       if (new Date() > item.expires) {
-        this._db.delete(this.options.query, keys[i]);
+        this._db.delete(md5(this.options.query), keys[i]);
       } else {
         this.options.onSuccess.call(this, item.result);
         this._onRequestLoadCallback(item.bounds);
@@ -360,7 +359,7 @@ const OverPassLayer = L.FeatureGroup.extend({
         let expireDate = new Date();
         expireDate.setSeconds(expireDate.getSeconds() + this.options.cacheTTL);
 
-        this._db.put(this.options.query, {
+        this._db.put(md5(this.options.query), {
           result: result,
           bounds: bounds,
           expires: expireDate

@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "idb": "^4.0.5",
+    "md5": "2.2.1",
     "js-clipper": "^1.0.1",
     "leaflet": "^1.2.0"
   },
