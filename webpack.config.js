@@ -1,48 +1,46 @@
 const webpack = require('webpack');
 const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const extractCSS = new ExtractTextPlugin('OverPassLayer.css');
-
-const plugins = [extractCSS];
-
-plugins.push(
-  new webpack.optimize.UglifyJsPlugin({
-    minimize: true,
-    mangle: true,
-    output: {
-      comments: false
-    },
-    compress: {
-      warnings: false
-    }
-  })
-);
+const UglifyJSPlugin = require('uglify-es-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  devtool: 'source-map',
-  plugins: plugins,
   context: path.join(__dirname, 'src'),
   entry: {
-    OverPassLayer: './OverPassLayer'
+    OverPassLayer: './OverPassLayer',
   },
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: '[name].bundle.js'
+    filename: '[name].bundle.js',
   },
   externals: {
-    leaflet: 'L'
+    leaflet: 'L',
   },
+  plugins: [
+    new webpack.NamedModulesPlugin(),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    }),
+    new UglifyJSPlugin({
+      compress: {
+        drop_console: true,
+      },
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: '*.css*',
+      },
+    ]),
+  ],
+  mode: 'production',
+
   module: {
     rules: [
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
-      {
-        test: /\.css$/,
-        loader: extractCSS.extract(['css-loader', 'postcss-loader'])
-      }
-    ]
-  }
+      { test: /\.css$/, use: 'raw-loader' },
+    ],
+  },
 };
