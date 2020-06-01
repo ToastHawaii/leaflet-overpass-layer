@@ -72,19 +72,18 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   async _initDB() {
-    const tableName = md5(this.options.query);
-    this._db = await openDB("leaflet-overpass-layer", 1, {
+    this._db = await openDB(md5(this.options.query), 1, {
       upgrade(db) {
-        db.createObjectStore(tableName, { autoIncrement: true });
+        db.createObjectStore("cache", { autoIncrement: true });
       }
     });
 
-    let items = await this._db.getAll(tableName);
-    let keys = await this._db.getAllKeys(tableName);
+    let items = await this._db.getAll("cache");
+    let keys = await this._db.getAllKeys("cache");
 
     items.forEach((item, i) => {
       if (new Date() > item.expires) {
-        this._db.delete(tableName, keys[i]);
+        this._db.delete("cache", keys[i]);
       } else {
         this.options.onSuccess.call(this, item.result);
         this._onRequestLoadCallback(item.bounds);
@@ -360,7 +359,7 @@ const OverPassLayer = L.FeatureGroup.extend({
         let expireDate = new Date();
         expireDate.setSeconds(expireDate.getSeconds() + this.options.cacheTTL);
 
-        this._db.put(md5(this.options.query), {
+        this._db.put("cache", {
           result: result,
           bounds: bounds,
           expires: expireDate
