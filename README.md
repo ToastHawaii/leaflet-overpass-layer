@@ -66,6 +66,8 @@ options: {
   markerIcon: L.Icon(),
   timeout: 30 * 1000, // Milliseconds
   retryOnTimeout: false,
+  cacheEnabled: false,
+  cacheTTL: 1800, // Seconds
   noInitialRequest: false,
   minZoomIndicatorEnabled: true,
   minZoomIndicatorOptions: {

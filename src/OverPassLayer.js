@@ -1,15 +1,15 @@
-import L from 'leaflet';
-import ClipperLib from 'js-clipper';
-import { openDB } from 'idb';
-import './OverPassLayer.css';
-import './MinZoomIndicator';
+import L from "leaflet";
+import ClipperLib from "js-clipper";
+import { openDB } from "idb";
+import "./OverPassLayer.css";
+import "./MinZoomIndicator";
 
 const OverPassLayer = L.FeatureGroup.extend({
   options: {
     debug: false,
     minZoom: 15,
-    endPoint: 'https://overpass-api.de/api/',
-    query: '(node[organic];node[second_hand];);out qt;',
+    endPoint: "https://overpass-api.de/api/",
+    query: "(node[organic];node[fair_trade];node[second_hand];);out qt;",
     loadedBounds: [],
     markerIcon: null,
     timeout: 30, // Seconds
@@ -34,7 +34,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
         this._ids[e.id] = true;
 
-        if (e.type === 'node') {
+        if (e.type === "node") {
           pos = L.latLng(e.lat, e.lon);
         } else {
           pos = L.latLng(e.center.lat, e.center.lon);
@@ -45,7 +45,7 @@ const OverPassLayer = L.FeatureGroup.extend({
         } else {
           marker = L.circle(pos, 20, {
             stroke: false,
-            fillColor: '#E54041',
+            fillColor: "#E54041",
             fillOpacity: 0.9
           });
         }
@@ -64,25 +64,27 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     minZoomIndicatorEnabled: true,
     minZoomIndicatorOptions: {
-      minZoomMessageNoLayer: 'No layer assigned',
+      minZoomMessageNoLayer: "No layer assigned",
       minZoomMessage:
-        'Current zoom Level: CURRENTZOOM. Data are visible at Level: MINZOOMLEVEL.'
+        "Current zoom Level: CURRENTZOOM. Data are visible at Level: MINZOOMLEVEL."
     }
   },
 
   async _initDB() {
-    this._db = await openDB('leaflet-overpass-layer', 1, {
+    this._db = await openDB("leaflet-overpass-layer", 1, {
       upgrade(db) {
-        db.createObjectStore('cache', { autoIncrement: true });
+        db.createObjectStore(this.options.query, {
+          autoIncrement: true
+        });
       }
     });
 
-    let items = await this._db.getAll('cache');
-    let keys = await this._db.getAllKeys('cache');
+    let items = await this._db.getAll(this.options.query);
+    let keys = await this._db.getAllKeys(this.options.query);
 
     items.forEach((item, i) => {
       if (new Date() > item.expires) {
-        this._db.delete('cache', keys[i]);
+        this._db.delete(this.options.query, keys[i]);
       } else {
         this.options.onSuccess.call(this, item.result);
         this._onRequestLoadCallback(item.bounds);
@@ -108,15 +110,15 @@ const OverPassLayer = L.FeatureGroup.extend({
 
   _getPoiPopupHTML(tags, id) {
     let row;
-    const link = document.createElement('a');
-    const table = document.createElement('table');
-    const div = document.createElement('div');
+    const link = document.createElement("a");
+    const table = document.createElement("table");
+    const div = document.createElement("div");
 
     link.href = `https://www.openstreetmap.org/edit?editor=id&node=${id}`;
-    link.appendChild(document.createTextNode('Edit this entry in iD'));
+    link.appendChild(document.createTextNode("Edit this entry in iD"));
 
-    table.style.borderSpacing = '10px';
-    table.style.borderCollapse = 'separate';
+    table.style.borderSpacing = "10px";
+    table.style.borderCollapse = "separate";
 
     for (const key in tags) {
       row = table.insertRow(0);
@@ -133,7 +135,7 @@ const OverPassLayer = L.FeatureGroup.extend({
   _buildRequestBox(bounds) {
     return L.rectangle(bounds, {
       bounds: bounds,
-      color: '#204a87',
+      color: "#204a87",
       stroke: false,
       fillOpacity: 0.1,
       clickable: false
@@ -165,7 +167,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     requestBoxes.forEach(box => {
       box.setStyle({
-        color: 'black',
+        color: "black",
         weight: 2
       });
       this._addResponseBox(box);
@@ -244,12 +246,11 @@ const OverPassLayer = L.FeatureGroup.extend({
   _buildOverpassUrlFromEndPointAndQuery(endPoint, query, bounds) {
     const sw = bounds._southWest;
     const ne = bounds._northEast;
-    const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(',');
+    const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(",");
 
-    query = query.replace(/(\/\/.*)/g, '');
+    query = query.replace(/(\/\/.*)/g, "");
 
-    return `${endPoint}interpreter?data=[out:json][timeout:${this.options
-      .timeout}][bbox:${coordinates}];${query}`;
+    return `${endPoint}interpreter?data=[out:json][timeout:${this.options.timeout}][bbox:${coordinates}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
@@ -340,7 +341,7 @@ const OverPassLayer = L.FeatureGroup.extend({
       this._addRequestBox(this._buildRequestBox(requestBounds));
     }
 
-    request.open('GET', url, true);
+    request.open("GET", url, true);
     request.timeout = this.options.timeout * 1000;
 
     request.ontimeout = () =>
@@ -359,7 +360,7 @@ const OverPassLayer = L.FeatureGroup.extend({
         let expireDate = new Date();
         expireDate.setSeconds(expireDate.getSeconds() + this.options.cacheTTL);
 
-        this._db.put('cache', {
+        this._db.put(this.options.query, {
           result: result,
           bounds: bounds,
           expires: expireDate
@@ -444,7 +445,7 @@ const OverPassLayer = L.FeatureGroup.extend({
       this._prepareRequest();
     }
 
-    this._map.on('moveend', this._prepareRequest, this);
+    this._map.on("moveend", this._prepareRequest, this);
   },
 
   onRemove(map) {
@@ -452,7 +453,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     this._resetData();
 
-    map.off('moveend', this._prepareRequest, this);
+    map.off("moveend", this._prepareRequest, this);
 
     this._map = null;
   },
