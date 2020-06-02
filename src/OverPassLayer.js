@@ -460,6 +460,11 @@ const OverPassLayer = L.FeatureGroup.extend({
   setQuery(query) {
     this.options.query = query;
     this._resetData();
+
+    if (this.options.cacheEnabled) {
+      this._initDB();
+    }
+
     this._prepareRequest();
   },
 
