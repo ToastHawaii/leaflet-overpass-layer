@@ -1,19 +1,27 @@
-import L from 'leaflet';
-import ClipperLib from 'js-clipper';
-import './OverPassLayer.css';
-import './MinZoomIndicator';
+import L from "leaflet";
+import ClipperLib from "js-clipper";
+import { openDB } from "idb";
+import "./OverPassLayer.css";
+import "./MinZoomIndicator";
+import md5 from "md5";
 
 const OverPassLayer = L.FeatureGroup.extend({
   options: {
     debug: false,
     minZoom: 15,
-    endPoint: 'https://overpass-api.de/api/',
-    query: '(node[organic];node[second_hand];);out qt;',
+    endPoints: [
+      "https://overpass-api.de/api/",
+      "https://overpass.kumi.systems/api/",
+      "https://overpass.nchc.org.tw/api/"
+    ],
+    query: "(node[organic];node[fair_trade];node[second_hand];);out qt;",
     loadedBounds: [],
     markerIcon: null,
     timeout: 30, // Seconds
     retryOnTimeout: false,
     noInitialRequest: false,
+    cacheEnabled: true,
+    cacheTTL: 1800, // Seconds
 
     beforeRequest() {},
 
@@ -31,7 +39,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
         this._ids[e.id] = true;
 
-        if (e.type === 'node') {
+        if (e.type === "node") {
           pos = L.latLng(e.lat, e.lon);
         } else {
           pos = L.latLng(e.center.lat, e.center.lon);
@@ -42,7 +50,7 @@ const OverPassLayer = L.FeatureGroup.extend({
         } else {
           marker = L.circle(pos, 20, {
             stroke: false,
-            fillColor: '#E54041',
+            fillColor: "#E54041",
             fillOpacity: 0.9
           });
         }
@@ -61,31 +69,61 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     minZoomIndicatorEnabled: true,
     minZoomIndicatorOptions: {
-      minZoomMessageNoLayer: 'No layer assigned',
+      minZoomMessageNoLayer: "No layer assigned",
       minZoomMessage:
-        'Current zoom Level: CURRENTZOOM. Data are visible at Level: MINZOOMLEVEL.'
+        "Current zoom Level: CURRENTZOOM. Data are visible at Level: MINZOOMLEVEL."
+    }
+  },
+
+  async _initDB() {
+    this._db = await openDB(md5(this.options.query), 1, {
+      upgrade(db) {
+        db.createObjectStore("cache", { autoIncrement: true });
+      }
+    });
+
+    let items = await this._db.getAll("cache");
+    let keys = await this._db.getAllKeys("cache");
+
+    items.forEach((item, i) => {
+      if (new Date() > item.expires) {
+        this._db.delete("cache", keys[i]);
+      } else {
+        this.options.onSuccess.call(this, item.result);
+        this._onRequestLoadCallback(item.bounds);
+      }
+    });
+
+    if (!this.options.noInitialRequest) {
+      this._prepareRequest();
     }
   },
 
   initialize(options) {
     L.Util.setOptions(this, options);
 
+    this._endPointsIndex = 0;
+    this._retries = 0;
     this._ids = {};
     this._loadedBounds = options.loadedBounds || [];
     this._requestInProgress = false;
+
+    if (this.options.cacheEnabled) {
+      this._initDB();
+    }
   },
 
   _getPoiPopupHTML(tags, id) {
     let row;
-    const link = document.createElement('a');
-    const table = document.createElement('table');
-    const div = document.createElement('div');
+    const link = document.createElement("a");
+    const table = document.createElement("table");
+    const div = document.createElement("div");
 
     link.href = `https://www.openstreetmap.org/edit?editor=id&node=${id}`;
-    link.appendChild(document.createTextNode('Edit this entry in iD'));
+    link.appendChild(document.createTextNode("Edit this entry in iD"));
 
-    table.style.borderSpacing = '10px';
-    table.style.borderCollapse = 'separate';
+    table.style.borderSpacing = "10px";
+    table.style.borderCollapse = "separate";
 
     for (const key in tags) {
       row = table.insertRow(0);
@@ -102,7 +140,7 @@ const OverPassLayer = L.FeatureGroup.extend({
   _buildRequestBox(bounds) {
     return L.rectangle(bounds, {
       bounds: bounds,
-      color: '#204a87',
+      color: "#204a87",
       stroke: false,
       fillOpacity: 0.1,
       clickable: false
@@ -134,7 +172,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     requestBoxes.forEach(box => {
       box.setStyle({
-        color: 'black',
+        color: "black",
         weight: 2
       });
       this._addResponseBox(box);
@@ -213,12 +251,11 @@ const OverPassLayer = L.FeatureGroup.extend({
   _buildOverpassUrlFromEndPointAndQuery(endPoint, query, bounds) {
     const sw = bounds._southWest;
     const ne = bounds._northEast;
-    const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(',');
+    const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(",");
 
-    query = query.replace(/(\/\/.*)/g, '');
+    query = query.replace(/(\/\/.*)/g, "");
 
-    return `${endPoint}interpreter?data=[out:json][timeout:${this.options
-      .timeout}][bbox:${coordinates}];${query}`;
+    return `${endPoint}interpreter?data=[out:json][timeout:${this.options.timeout}][bbox:${coordinates}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
@@ -280,6 +317,24 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
+  _retry(bounds) {
+    this._retries++;
+
+    if (this._retries > this._endPoints.length)
+      throw "Maximum retries reached.";
+
+    this._nextEndPoint();
+    this._sendRequest(bounds);
+  },
+
+  _nextEndPoint() {
+    if (this._endPointsIndex < this.options.endPoints.length - 1) {
+      this._endPointsIndex++;
+    } else {
+      this._endPointsIndex = 0;
+    }
+  },
+
   _sendRequest(bounds) {
     const loadedBounds = this._getLoadedBounds();
 
@@ -290,7 +345,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     const requestBounds = this._buildLargerBounds(bounds);
     const url = this._buildOverpassUrlFromEndPointAndQuery(
-      this.options.endPoint,
+      this.options.endPoints[this._endPointsIndex],
       this.options.query,
       requestBounds
     );
@@ -309,11 +364,18 @@ const OverPassLayer = L.FeatureGroup.extend({
       this._addRequestBox(this._buildRequestBox(requestBounds));
     }
 
-    request.open('GET', url, true);
+    request.open("GET", url, true);
     request.timeout = this.options.timeout * 1000;
 
     request.ontimeout = () =>
       this._onRequestTimeout(request, url, requestBounds);
+    request.onerror = () => {
+      this._onRequestErrorCallback(requestBounds);
+
+      this.options.onError.call(this, request);
+
+      this._retry(bounds);
+    };
     request.onload = () => this._onRequestLoad(request, requestBounds);
 
     request.send();
@@ -321,13 +383,29 @@ const OverPassLayer = L.FeatureGroup.extend({
 
   _onRequestLoad(xhr, bounds) {
     if (xhr.status >= 200 && xhr.status < 400) {
-      this.options.onSuccess.call(this, JSON.parse(xhr.response));
+      this._retries = 0;
+
+      let result = JSON.parse(xhr.response);
+      this.options.onSuccess.call(this, result);
+
+      if (this.options.cacheEnabled) {
+        let expireDate = new Date();
+        expireDate.setSeconds(expireDate.getSeconds() + this.options.cacheTTL);
+
+        this._db.put("cache", {
+          result: result,
+          bounds: bounds,
+          expires: expireDate
+        });
+      }
 
       this._onRequestLoadCallback(bounds);
     } else {
       this._onRequestErrorCallback(bounds);
 
       this.options.onError.call(this, xhr);
+
+      this._retry(bounds);
     }
 
     this._onRequestCompleteCallback(bounds);
@@ -337,7 +415,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     this.options.onTimeout.call(this, xhr);
 
     if (this.options.retryOnTimeout) {
-      this._sendRequest(url);
+      this._retry(bounds);
     } else {
       this._onRequestErrorCallback(bounds);
       this._onRequestCompleteCallback(bounds);
@@ -397,11 +475,11 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     this._markers = L.featureGroup().addTo(this._map);
 
-    if (!this.options.noInitialRequest) {
+    if (!this.options.noInitialRequest && !this.options.cacheEnabled) {
       this._prepareRequest();
     }
 
-    this._map.on('moveend', this._prepareRequest, this);
+    this._map.on("moveend", this._prepareRequest, this);
   },
 
   onRemove(map) {
@@ -409,7 +487,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     this._resetData();
 
-    map.off('moveend', this._prepareRequest, this);
+    map.off("moveend", this._prepareRequest, this);
 
     this._map = null;
   },
@@ -417,6 +495,11 @@ const OverPassLayer = L.FeatureGroup.extend({
   setQuery(query) {
     this.options.query = query;
     this._resetData();
+
+    if (this.options.cacheEnabled) {
+      this._initDB();
+    }
+
     this._prepareRequest();
   },
 
