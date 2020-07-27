@@ -9,14 +9,18 @@ const OverPassLayer = L.FeatureGroup.extend({
   options: {
     debug: false,
     minZoom: 15,
-    endPoint: "https://overpass-api.de/api/",
+    endPoints: [
+      "https://overpass-api.de/api/",
+      "https://overpass.kumi.systems/api/",
+      "https://overpass.nchc.org.tw/api/"
+    ],
     query: "(node[organic];node[fair_trade];node[second_hand];);out qt;",
     loadedBounds: [],
     markerIcon: null,
     timeout: 30, // Seconds
     retryOnTimeout: false,
     noInitialRequest: false,
-    cacheEnabled: false,
+    cacheEnabled: true,
     cacheTTL: 1800, // Seconds
 
     beforeRequest() {},
@@ -98,6 +102,8 @@ const OverPassLayer = L.FeatureGroup.extend({
   initialize(options) {
     L.Util.setOptions(this, options);
 
+    this._endPointsIndex = 0;
+    this._retries = 0;
     this._ids = {};
     this._loadedBounds = options.loadedBounds || [];
     this._requestInProgress = false;
@@ -311,6 +317,24 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
+  _retry(bounds) {
+    this._retries++;
+
+    if (this._retries > this._endPoints.length)
+      throw "Maximum retries reached.";
+
+    this._nextEndPoint();
+    this._sendRequest(bounds);
+  },
+
+  _nextEndPoint() {
+    if (this._endPointsIndex < this.options.endPoints.length - 1) {
+      this._endPointsIndex++;
+    } else {
+      this._endPointsIndex = 0;
+    }
+  },
+
   _sendRequest(bounds) {
     const loadedBounds = this._getLoadedBounds();
 
@@ -321,7 +345,7 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     const requestBounds = this._buildLargerBounds(bounds);
     const url = this._buildOverpassUrlFromEndPointAndQuery(
-      this.options.endPoint,
+      this.options.endPoints[this._endPointsIndex],
       this.options.query,
       requestBounds
     );
@@ -345,6 +369,13 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     request.ontimeout = () =>
       this._onRequestTimeout(request, url, requestBounds);
+    request.onerror = () => {
+      this._onRequestErrorCallback(requestBounds);
+
+      this.options.onError.call(this, request);
+
+      this._retry(bounds);
+    };
     request.onload = () => this._onRequestLoad(request, requestBounds);
 
     request.send();
@@ -352,6 +383,8 @@ const OverPassLayer = L.FeatureGroup.extend({
 
   _onRequestLoad(xhr, bounds) {
     if (xhr.status >= 200 && xhr.status < 400) {
+      this._retries = 0;
+
       let result = JSON.parse(xhr.response);
       this.options.onSuccess.call(this, result);
 
@@ -371,6 +404,8 @@ const OverPassLayer = L.FeatureGroup.extend({
       this._onRequestErrorCallback(bounds);
 
       this.options.onError.call(this, xhr);
+
+      this._retry(bounds);
     }
 
     this._onRequestCompleteCallback(bounds);
@@ -380,7 +415,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     this.options.onTimeout.call(this, xhr);
 
     if (this.options.retryOnTimeout) {
-      this._sendRequest(url);
+      this._retry(bounds);
     } else {
       this._onRequestErrorCallback(bounds);
       this._onRequestCompleteCallback(bounds);

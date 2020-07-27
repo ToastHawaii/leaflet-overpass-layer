@@ -60,13 +60,17 @@ options: {
 
   debug: false,
   minZoom: 15,
-  endPoint: 'https://overpass-api.de/api/',
+  endPoints: [
+      "https://overpass-api.de/api/",
+      "https://overpass.kumi.systems/api/",
+      "https://overpass.nchc.org.tw/api/"
+    ]
   query: '(node({{bbox}})[organic];node({{bbox}})[second_hand];);out qt;',
   loadedBounds: [],
   markerIcon: L.Icon(),
   timeout: 30 * 1000, // Milliseconds
   retryOnTimeout: false,
-  cacheEnabled: false,
+  cacheEnabled: true,
   cacheTTL: 1800, // Seconds
   noInitialRequest: false,
   minZoomIndicatorEnabled: true,
