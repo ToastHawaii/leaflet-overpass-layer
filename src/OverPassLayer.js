@@ -10,9 +10,18 @@ const OverPassLayer = L.FeatureGroup.extend({
     debug: false,
     minZoom: 15,
     endPoints: [
-      "https://overpass-api.de/api/",
-      "https://overpass.kumi.systems/api/",
-      "https://overpass.nchc.org.tw/api/"
+      { url: "https://overpass-api.de/api/", extendQuerySupport: true },
+      { url: "https://overpass.kumi.systems/api/", extendQuerySupport: true },
+      { url: "https://overpass.nchc.org.tw/api/", extendQuerySupport: false },
+      {
+        url: "https://overpass.openstreetmap.ru/cgi/",
+        extendQuerySupport: false
+      },
+      {
+        url: "https://overpass.osm.ch/api/",
+        extendQuerySupport: false,
+        bounds: [45.818, 5.9559, 47.8085, 10.4923]
+      }
     ],
     query: "(node[organic];node[fair_trade];node[second_hand];);out qt;",
     loadedBounds: [],
@@ -102,10 +111,10 @@ const OverPassLayer = L.FeatureGroup.extend({
   initialize(options) {
     L.Util.setOptions(this, options);
 
+    // Random endpoint
     this._endPointsIndex = Math.floor(
       Math.random() * this.options.endPoints.length
     );
-    this._retries = 0;
     this._ids = {};
     this._loadedBounds = options.loadedBounds || [];
     this._requestInProgress = false;
@@ -255,9 +264,24 @@ const OverPassLayer = L.FeatureGroup.extend({
     const ne = bounds._northEast;
     const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(",");
 
+    if (!endPoint.extendQuerySupport) {
+      query = query.replace(
+        /([(;/\s])nw((\[.*])*(\(.*\))*;)/gim,
+        "$1node$2way$2"
+      );
+      query = query.replace(
+        /([(;/\s])nr((\[.*])*(\(.*\))*;)/gim,
+        "$1node$2relation$2"
+      );
+      query = query.replace(
+        /([(;/\s])wr((\[.*])*(\(.*\))*;)/gim,
+        "$1way$2relation$2"
+      );
+    }
+
     query = query.replace(/(\/\/.*)/g, "");
 
-    return `${endPoint}interpreter?data=[out:json][timeout:${this.options.timeout}][bbox:${coordinates}];${query}`;
+    return `${endPoint.url}interpreter?data=[out:json][timeout:${this.options.timeout}][bbox:${coordinates}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
@@ -320,21 +344,19 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _retry(bounds) {
-    this._retries++;
-
-    if (this._retries > this.options.endPoints.length)
-      throw "Maximum retries reached.";
-
-    this._nextEndPoint();
+    this._nextEndPoint(bounds);
     this._sendRequest(bounds);
   },
 
-  _nextEndPoint() {
+  _nextEndPoint(requestBounds) {
     if (this._endPointsIndex < this.options.endPoints.length - 1) {
       this._endPointsIndex++;
     } else {
       this._endPointsIndex = 0;
     }
+
+    if (this._endPointSupportsBounds(requestBounds))
+      this._nextEndPoint(requestBounds);
   },
 
   _sendRequest(bounds) {
@@ -346,6 +368,10 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
 
     const requestBounds = this._buildLargerBounds(bounds);
+
+    if (this._endPointSupportsBounds(requestBounds))
+      this._nextEndPoint(requestBounds);
+
     const url = this._buildOverpassUrlFromEndPointAndQuery(
       this.options.endPoints[this._endPointsIndex],
       this.options.query,
@@ -383,10 +409,19 @@ const OverPassLayer = L.FeatureGroup.extend({
     request.send();
   },
 
+  _endPointSupportsBounds(bounds) {
+    const supportedBounds = this.options.endPoints[this._endPointsIndex].bounds;
+    return (
+      supportedBounds &&
+      !L.latLngBounds([
+        [supportedBounds[0], supportedBounds[1]],
+        [supportedBounds[2], supportedBounds[3]]
+      ]).contains(bounds)
+    );
+  },
+
   _onRequestLoad(xhr, bounds) {
     if (xhr.status >= 200 && xhr.status < 400) {
-      this._retries = 0;
-
       let result = JSON.parse(xhr.response);
       this.options.onSuccess.call(this, result);
 
