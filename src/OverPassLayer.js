@@ -320,7 +320,7 @@ const OverPassLayer = L.FeatureGroup.extend({
   _retry(bounds) {
     this._retries++;
 
-    if (this._retries > this._endPoints.length)
+    if (this._retries > this.options.endPoints.length)
       throw "Maximum retries reached.";
 
     this._nextEndPoint();
