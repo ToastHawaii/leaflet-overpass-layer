@@ -102,7 +102,9 @@ const OverPassLayer = L.FeatureGroup.extend({
   initialize(options) {
     L.Util.setOptions(this, options);
 
-    this._endPointsIndex = 0;
+    this._endPointsIndex = Math.floor(
+      Math.random() * this.options.endPoints.length
+    );
     this._retries = 0;
     this._ids = {};
     this._loadedBounds = options.loadedBounds || [];
