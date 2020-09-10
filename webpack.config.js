@@ -1,6 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
-const UglifyJSPlugin = require('uglify-es-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
@@ -15,21 +15,22 @@ module.exports = {
   externals: {
     leaflet: 'L',
   },
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin()],
+  },
   plugins: [
     new webpack.NamedModulesPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    new UglifyJSPlugin({
-      compress: {
-        drop_console: true,
-      },
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: '*.css*',
+        },
+      ],
     }),
-    new CopyWebpackPlugin([
-      {
-        from: '*.css*',
-      },
-    ]),
   ],
   mode: 'production',
 
