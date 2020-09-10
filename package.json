@@ -41,10 +41,10 @@
     ]
   },
   "dependencies": {
-    "idb": "5.0.4",
+    "idb": "5.0.5",
     "md5": "2.3.0",
     "js-clipper": "1.0.1",
-    "leaflet": "1.6.0"
+    "leaflet": "1.7.1"
   },
   "devDependencies": {
     "babel-core": "6.26.3",
@@ -52,16 +52,16 @@
     "babel-preset-env": "1.7.0",
     "babel-preset-stage-0": "6.24.1",
     "clean-webpack-plugin": "3.0.0",
-    "copy-webpack-plugin": "5.1.1",
-    "css-loader": "3.2.0",
-    "file-loader": "4.2.0",
+    "copy-webpack-plugin": "6.1.0",
+    "css-loader": "4.3.0",
+    "file-loader": "6.1.0",
     "raw-loader": "4.0.1",
-    "source-map-loader": "0.2.4",
-    "style-loader": "1.0.0",
-    "uglify-es-webpack-plugin": "0.10.0",
-    "url-loader": "2.1.0",
-    "webpack": "4.41.5",
+    "source-map-loader": "1.1.0",
+    "style-loader": "1.2.1",
+    "terser-webpack-plugin": "4.1.0",
+    "url-loader": "4.1.0",
+    "webpack": "4.44.1",
     "webpack-cli": "3.3.12",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "3.11.0"
   }
 }
