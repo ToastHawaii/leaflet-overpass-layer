@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import L from "leaflet";
 
 const MinZoomIndicator = L.Control.extend({
   options: {},
@@ -57,9 +57,9 @@ const MinZoomIndicator = L.Control.extend({
     }
 
     if (this._map.getZoom() >= minZoomLevel) {
-      this._container.style.display = 'none';
+      this._container.style.display = "none";
     } else {
-      this._container.style.display = 'block';
+      this._container.style.display = "block";
     }
   },
 
@@ -69,11 +69,11 @@ const MinZoomIndicator = L.Control.extend({
     this._map.zoomIndicator = this;
 
     this._container = L.DomUtil.create(
-      'div',
-      'leaflet-control-minZoomIndicator'
+      "div",
+      "leaflet-control-minZoomIndicator"
     );
 
-    this._map.on('moveend', this._updateBox, this);
+    this._map.on("moveend", this._updateBox, this);
 
     this._updateBox(null);
 

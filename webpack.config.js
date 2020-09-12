@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
+const UglifyJSPlugin = require('uglify-es-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
@@ -15,16 +16,20 @@ module.exports = {
     leaflet: 'L',
   },
   plugins: [
+    new webpack.NamedModulesPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: '*.css*',
-        },
-      ],
+    new UglifyJSPlugin({
+      compress: {
+        drop_console: true,
+      },
     }),
+    new CopyWebpackPlugin([
+      {
+        from: '*.css*',
+      },
+    ]),
   ],
   mode: 'production',
 
@@ -32,13 +37,8 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
+        loader: 'babel-loader',
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [['@babel/preset-env']],
-          },
-        },
       },
       { test: /\.css$/, use: 'raw-loader' },
     ],
