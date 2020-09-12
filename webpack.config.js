@@ -15,7 +15,6 @@ module.exports = {
     leaflet: 'L',
   },
   plugins: [
-    new webpack.NamedModulesPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
@@ -33,12 +32,11 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!idb)/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env'],
-            plugins: ['@babel/plugin-proposal-object-rest-spread'],
+            presets: [['@babel/preset-env']],
           },
         },
       },
