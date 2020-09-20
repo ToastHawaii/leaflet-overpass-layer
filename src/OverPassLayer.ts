@@ -1,9 +1,9 @@
-import L from "leaflet";
-import ClipperLib from "js-clipper";
+import * as L from "leaflet";
+import * as ClipperLib from "js-clipper";
 import { openDB } from "idb";
 import "./OverPassLayer.css";
 import "./MinZoomIndicator";
-import md5 from "md5";
+import * as md5 from "md5";
 
 const OverPassLayer = L.FeatureGroup.extend({
   options: {
@@ -36,17 +36,17 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     afterRequest() {},
 
-    onSuccess(data) {
+    onSuccess(data: any) {
       for (let i = 0; i < data.elements.length; i++) {
         let pos;
         let marker;
         const e = data.elements[i];
 
-        if (e.id in this._ids) {
+        if (e.id in (this as any)._ids) {
           continue;
         }
 
-        this._ids[e.id] = true;
+        (this as any)._ids[e.id] = true;
 
         if (e.type === "node") {
           pos = L.latLng(e.lat, e.lon);
@@ -54,8 +54,8 @@ const OverPassLayer = L.FeatureGroup.extend({
           pos = L.latLng(e.center.lat, e.center.lon);
         }
 
-        if (this.options.markerIcon) {
-          marker = L.marker(pos, { icon: this.options.markerIcon });
+        if ((this as any).options.markerIcon) {
+          marker = L.marker(pos, { icon: (this as any).options.markerIcon });
         } else {
           marker = L.circle(pos, 20, {
             stroke: false,
@@ -64,11 +64,11 @@ const OverPassLayer = L.FeatureGroup.extend({
           });
         }
 
-        const popupContent = this._getPoiPopupHTML(e.tags, e.id);
+        const popupContent = (this as any)._getPoiPopupHTML(e.tags, e.id);
         const popup = L.popup().setContent(popupContent);
         marker.bindPopup(popup);
 
-        this._markers.addLayer(marker);
+        (this as any)._markers.addLayer(marker);
       }
     },
 
@@ -85,26 +85,26 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   async _initDB() {
-    this._db = await openDB(md5(this.options.query), 1, {
+    (this as any)._db = await openDB(md5((this as any).options.query), 1, {
       upgrade(db) {
         db.createObjectStore("cache", { autoIncrement: true });
       }
     });
 
-    let items = await this._db.getAll("cache");
-    let keys = await this._db.getAllKeys("cache");
+    let items = await (this as any)._db.getAll("cache");
+    let keys = await (this as any)._db.getAllKeys("cache");
 
-    items.forEach((item, i) => {
+    items.forEach((item: any, i: any) => {
       if (new Date() > item.expires) {
-        this._db.delete("cache", keys[i]);
+        (this as any)._db.delete("cache", keys[i]);
       } else {
-        this.options.onSuccess.call(this, item.result);
-        this._onRequestLoadCallback(item.bounds);
+        (this as any).options.onSuccess.call(this, item.result);
+        (this as any)._onRequestLoadCallback(item.bounds);
       }
     });
 
-    if (!this.options.noInitialRequest) {
-      this._prepareRequest();
+    if (!(this as any).options.noInitialRequest) {
+      (this as any)._prepareRequest();
     }
   },
 
@@ -112,15 +112,15 @@ const OverPassLayer = L.FeatureGroup.extend({
     L.Util.setOptions(this, options);
 
     // Random endpoint
-    this._endPointsIndex = Math.floor(
-      Math.random() * this.options.endPoints.length
+    (this as any)._endPointsIndex = Math.floor(
+      Math.random() * (this as any).options.endPoints.length
     );
-    this._ids = {};
-    this._loadedBounds = options.loadedBounds || [];
-    this._requestInProgress = false;
+    (this as any)._ids = {};
+    (this as any)._loadedBounds = options.loadedBounds || [];
+    (this as any)._requestInProgress = false;
 
-    if (this.options.cacheEnabled) {
-      this._initDB();
+    if ((this as any).options.cacheEnabled) {
+      (this as any)._initDB();
     }
   },
 
@@ -159,34 +159,34 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _addRequestBox(box) {
-    return this._requestBoxes.addLayer(box);
+    return (this as any)._requestBoxes.addLayer(box);
   },
 
   _getRequestBoxes() {
-    return this._requestBoxes.getLayers();
+    return (this as any)._requestBoxes.getLayers();
   },
 
   _removeRequestBox(box) {
-    this._requestBoxes.removeLayer(box);
+    (this as any)._requestBoxes.removeLayer(box);
   },
 
   _removeRequestBoxes() {
-    return this._requestBoxes.clearLayers();
+    return (this as any)._requestBoxes.clearLayers();
   },
 
   _addResponseBox(box) {
-    return this._responseBoxes.addLayer(box);
+    return (this as any)._responseBoxes.addLayer(box);
   },
 
   _addResponseBoxes(requestBoxes) {
-    this._removeRequestBoxes();
+    (this as any)._removeRequestBoxes();
 
-    requestBoxes.forEach(box => {
+    requestBoxes.forEach((box: any) => {
       box.setStyle({
         color: "black",
         weight: 2
       });
-      this._addResponseBox(box);
+      (this as any)._addResponseBox(box);
     });
   },
 
@@ -195,8 +195,8 @@ const OverPassLayer = L.FeatureGroup.extend({
       return false;
     }
 
-    const subjectClips = this._buildClipsFromBounds([bounds]);
-    const knownClips = this._buildClipsFromBounds(loadedBounds);
+    const subjectClips = (this as any)._buildClipsFromBounds([bounds]);
+    const knownClips = (this as any)._buildClipsFromBounds(loadedBounds);
     const clipper = new ClipperLib.Clipper();
     const solutionPolyTree = new ClipperLib.PolyTree();
 
@@ -226,15 +226,15 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _getLoadedBounds() {
-    return this._loadedBounds;
+    return (this as any)._loadedBounds;
   },
 
   _addLoadedBounds(bounds) {
-    this._loadedBounds.push(bounds);
+    (this as any)._loadedBounds.push(bounds);
   },
 
   _buildClipsFromBounds(bounds) {
-    return bounds.map(bound => [
+    return bounds.map((bound: any) => [
       {
         X: bound._southWest.lng * 1000000,
         Y: bound._southWest.lat * 1000000
@@ -255,7 +255,7 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _buildBoundsFromClips(clips) {
-    return clips.map(clip =>
+    return clips.map((clip: any) =>
       L.latLngBounds(
         L.latLng(clip[0].Y / 1000000, clip[0].X / 1000000).wrap(),
         L.latLng(clip[2].Y / 1000000, clip[2].X / 1000000).wrap()
@@ -285,7 +285,9 @@ const OverPassLayer = L.FeatureGroup.extend({
 
     query = query.replace(/(\/\/.*)/g, "");
 
-    return `${endPoint.url}interpreter?data=[out:json][timeout:${this.options.timeout}][bbox:${coordinates}];${query}`;
+    return `${endPoint.url}interpreter?data=[out:json][timeout:${
+      (this as any).options.timeout
+    }][bbox:${coordinates}];${query}`;
   },
 
   _buildLargerBounds(bounds) {
@@ -304,15 +306,15 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _setRequestInProgress(isInProgress) {
-    this._requestInProgress = isInProgress;
+    (this as any)._requestInProgress = isInProgress;
   },
 
   _isRequestInProgress() {
-    return this._requestInProgress;
+    return (this as any)._requestInProgress;
   },
 
   _hasNextRequest() {
-    if (this._nextRequest) {
+    if ((this as any)._nextRequest) {
       return true;
     }
 
@@ -320,101 +322,110 @@ const OverPassLayer = L.FeatureGroup.extend({
   },
 
   _getNextRequest() {
-    return this._nextRequest;
+    return (this as any)._nextRequest;
   },
 
   _setNextRequest(nextRequest) {
-    this._nextRequest = nextRequest;
+    (this as any)._nextRequest = nextRequest;
   },
 
   _removeNextRequest() {
-    this._nextRequest = null;
+    (this as any)._nextRequest = null;
   },
 
   _prepareRequest() {
-    if (this._map.getZoom() < this.options.minZoom) {
+    if ((this as any)._map.getZoom() < (this as any).options.minZoom) {
       return false;
     }
 
-    const bounds = this._buildLargerBounds(this._map.getBounds());
-    const nextRequest = this._sendRequest.bind(this, bounds);
+    const bounds = (this as any)._buildLargerBounds(
+      (this as any)._map.getBounds()
+    );
+    const nextRequest = (this as any)._sendRequest.bind(this, bounds);
 
-    if (this._isRequestInProgress()) {
-      this._setNextRequest(nextRequest);
+    if ((this as any)._isRequestInProgress()) {
+      (this as any)._setNextRequest(nextRequest);
     } else {
-      this._removeNextRequest();
+      (this as any)._removeNextRequest();
       nextRequest();
     }
   },
 
   _retry(bounds) {
-    this._nextEndPoint(bounds);
-    this._sendRequest(bounds);
+    (this as any)._nextEndPoint(bounds);
+    (this as any)._sendRequest(bounds);
   },
 
   _nextEndPoint(requestBounds) {
-    if (this._endPointsIndex < this.options.endPoints.length - 1) {
-      this._endPointsIndex++;
+    if (
+      (this as any)._endPointsIndex <
+      (this as any).options.endPoints.length - 1
+    ) {
+      (this as any)._endPointsIndex++;
     } else {
-      this._endPointsIndex = 0;
+      (this as any)._endPointsIndex = 0;
     }
 
-    if (this._endPointSupportsBounds(requestBounds))
-      this._nextEndPoint(requestBounds);
+    if ((this as any)._endPointSupportsBounds(requestBounds))
+      (this as any)._nextEndPoint(requestBounds);
   },
 
   _sendRequest(bounds) {
-    const loadedBounds = this._getLoadedBounds();
+    const loadedBounds = (this as any)._getLoadedBounds();
 
-    if (this._isFullyLoadedBounds(bounds, loadedBounds)) {
-      this._setRequestInProgress(false);
+    if ((this as any)._isFullyLoadedBounds(bounds, loadedBounds)) {
+      (this as any)._setRequestInProgress(false);
       return;
     }
 
-    const requestBounds = this._buildLargerBounds(bounds);
+    const requestBounds = (this as any)._buildLargerBounds(bounds);
 
-    if (this._endPointSupportsBounds(requestBounds))
-      this._nextEndPoint(requestBounds);
+    if ((this as any)._endPointSupportsBounds(requestBounds))
+      (this as any)._nextEndPoint(requestBounds);
 
-    const url = this._buildOverpassUrlFromEndPointAndQuery(
-      this.options.endPoints[this._endPointsIndex],
-      this.options.query,
+    const url = (this as any)._buildOverpassUrlFromEndPointAndQuery(
+      (this as any).options.endPoints[(this as any)._endPointsIndex],
+      (this as any).options.query,
       requestBounds
     );
     const request = new XMLHttpRequest();
-    const beforeRequestResult = this.options.beforeRequest.call(this);
+    const beforeRequestResult = (this as any).options.beforeRequest.call(this);
 
     if (beforeRequestResult === false) {
-      this.options.afterRequest.call(this);
+      (this as any).options.afterRequest.call(this);
 
       return;
     }
 
-    this._setRequestInProgress(true);
+    (this as any)._setRequestInProgress(true);
 
-    if (this.options.debug) {
-      this._addRequestBox(this._buildRequestBox(requestBounds));
+    if ((this as any).options.debug) {
+      (this as any)._addRequestBox(
+        (this as any)._buildRequestBox(requestBounds)
+      );
     }
 
     request.open("GET", url, true);
-    request.timeout = this.options.timeout * 1000;
+    request.timeout = (this as any).options.timeout * 1000;
 
     request.ontimeout = () =>
-      this._onRequestTimeout(request, url, requestBounds);
+      (this as any)._onRequestTimeout(request, url, requestBounds);
     request.onerror = () => {
-      this._onRequestErrorCallback(requestBounds);
+      (this as any)._onRequestErrorCallback(requestBounds);
 
-      this.options.onError.call(this, request);
+      (this as any).options.onError.call(this, request);
 
-      this._retry(bounds);
+      (this as any)._retry(bounds);
     };
-    request.onload = () => this._onRequestLoad(request, requestBounds);
+    request.onload = () => (this as any)._onRequestLoad(request, requestBounds);
 
     request.send();
   },
 
   _endPointSupportsBounds(bounds) {
-    const supportedBounds = this.options.endPoints[this._endPointsIndex].bounds;
+    const supportedBounds = (this as any).options.endPoints[
+      (this as any)._endPointsIndex
+    ].bounds;
     return (
       supportedBounds &&
       !L.latLngBounds([
@@ -427,142 +438,148 @@ const OverPassLayer = L.FeatureGroup.extend({
   _onRequestLoad(xhr, bounds) {
     if (xhr.status >= 200 && xhr.status < 400) {
       let result = JSON.parse(xhr.response);
-      this.options.onSuccess.call(this, result);
+      (this as any).options.onSuccess.call(this, result);
 
-      if (this.options.cacheEnabled) {
+      if ((this as any).options.cacheEnabled) {
         let expireDate = new Date();
-        expireDate.setSeconds(expireDate.getSeconds() + this.options.cacheTTL);
+        expireDate.setSeconds(
+          expireDate.getSeconds() + (this as any).options.cacheTTL
+        );
 
-        this._db.put("cache", {
+        (this as any)._db.put("cache", {
           result: result,
           bounds: bounds,
           expires: expireDate
         });
       }
 
-      this._onRequestLoadCallback(bounds);
+      (this as any)._onRequestLoadCallback(bounds);
     } else {
-      this._onRequestErrorCallback(bounds);
+      (this as any)._onRequestErrorCallback(bounds);
 
-      this.options.onError.call(this, xhr);
+      (this as any).options.onError.call(this, xhr);
 
-      this._retry(bounds);
+      (this as any)._retry(bounds);
     }
 
-    this._onRequestCompleteCallback(bounds);
+    (this as any)._onRequestCompleteCallback(bounds);
   },
 
   _onRequestTimeout(xhr, url, bounds) {
-    this.options.onTimeout.call(this, xhr);
+    (this as any).options.onTimeout.call(this, xhr);
 
-    if (this.options.retryOnTimeout) {
-      this._retry(bounds);
+    if ((this as any).options.retryOnTimeout) {
+      (this as any)._retry(bounds);
     } else {
-      this._onRequestErrorCallback(bounds);
-      this._onRequestCompleteCallback(bounds);
+      (this as any)._onRequestErrorCallback(bounds);
+      (this as any)._onRequestCompleteCallback(bounds);
     }
   },
 
   _onRequestLoadCallback(bounds) {
-    this._addLoadedBounds(bounds);
+    (this as any)._addLoadedBounds(bounds);
 
-    if (this.options.debug) {
-      this._addResponseBoxes(this._getRequestBoxes());
+    if ((this as any).options.debug) {
+      (this as any)._addResponseBoxes((this as any)._getRequestBoxes());
     }
   },
 
   _onRequestErrorCallback(bounds) {
-    if (this.options.debug) {
-      this._removeRequestBox(this._buildRequestBox(bounds));
+    if ((this as any).options.debug) {
+      (this as any)._removeRequestBox((this as any)._buildRequestBox(bounds));
     }
   },
 
   _onRequestCompleteCallback() {
-    this.options.afterRequest.call(this);
+    (this as any).options.afterRequest.call(this);
 
-    if (this._hasNextRequest()) {
-      const nextRequest = this._getNextRequest();
+    if ((this as any)._hasNextRequest()) {
+      const nextRequest = (this as any)._getNextRequest();
 
-      this._removeNextRequest();
+      (this as any)._removeNextRequest();
 
       nextRequest();
     } else {
-      this._setRequestInProgress(false);
+      (this as any)._setRequestInProgress(false);
     }
   },
 
   onAdd(map) {
-    this._map = map;
+    (this as any)._map = map;
 
-    if (this.options.minZoomIndicatorEnabled === true) {
-      if (this._map.zoomIndicator) {
-        this._zoomControl = this._map.zoomIndicator;
-        this._zoomControl._addLayer(this);
+    if ((this as any).options.minZoomIndicatorEnabled === true) {
+      if ((this as any)._map.zoomIndicator) {
+        (this as any)._zoomControl = (this as any)._map.zoomIndicator;
+        (this as any)._zoomControl._addLayer(this);
       } else {
-        this._zoomControl = new L.Control.MinZoomIndicator(
-          this.options.minZoomIndicatorOptions
+        (this as any)._zoomControl = new L.Control.MinZoomIndicator(
+          (this as any).options.minZoomIndicatorOptions
         );
 
-        this._map.addControl(this._zoomControl);
+        (this as any)._map.addControl((this as any)._zoomControl);
 
-        this._zoomControl._addLayer(this);
+        (this as any)._zoomControl._addLayer(this);
       }
     }
 
-    if (this.options.debug) {
-      this._requestBoxes = L.featureGroup().addTo(this._map);
-      this._responseBoxes = L.featureGroup().addTo(this._map);
+    if ((this as any).options.debug) {
+      (this as any)._requestBoxes = L.featureGroup().addTo((this as any)._map);
+      (this as any)._responseBoxes = L.featureGroup().addTo((this as any)._map);
     }
 
-    this._markers = L.featureGroup().addTo(this._map);
+    (this as any)._markers = L.featureGroup().addTo((this as any)._map);
 
-    if (!this.options.noInitialRequest && !this.options.cacheEnabled) {
-      this._prepareRequest();
+    if (
+      !(this as any).options.noInitialRequest &&
+      !(this as any).options.cacheEnabled
+    ) {
+      (this as any)._prepareRequest();
     }
 
-    this._map.on("moveend", this._prepareRequest, this);
+    (this as any)._map.on("moveend", (this as any)._prepareRequest, this);
   },
 
   onRemove(map) {
     L.LayerGroup.prototype.onRemove.call(this, map);
 
-    this._resetData();
+    (this as any)._resetData();
 
-    map.off("moveend", this._prepareRequest, this);
+    map.off("moveend", (this as any)._prepareRequest, this);
 
-    this._map = null;
+    (this as any)._map = null;
   },
 
   setQuery(query) {
-    this.options.query = query;
-    this._resetData();
+    (this as any).options.query = query;
+    (this as any)._resetData();
 
-    if (this.options.cacheEnabled) {
-      this._initDB();
+    if ((this as any).options.cacheEnabled) {
+      (this as any)._initDB();
     }
 
-    this._prepareRequest();
+    (this as any)._prepareRequest();
   },
 
   _resetData() {
-    this._ids = {};
-    this._loadedBounds = [];
-    this._requestInProgress = false;
+    (this as any)._ids = {};
+    (this as any)._loadedBounds = [];
+    (this as any)._requestInProgress = false;
 
-    this._markers.clearLayers();
+    (this as any)._markers.clearLayers();
 
-    if (this.options.debug) {
-      this._requestBoxes.clearLayers();
-      this._responseBoxes.clearLayers();
+    if ((this as any).options.debug) {
+      (this as any)._requestBoxes.clearLayers();
+      (this as any)._responseBoxes.clearLayers();
     }
   },
 
   getData() {
-    return this._data;
+    return (this as any)._data;
   }
-});
+} as L.IOverPassLayer);
 
-L.OverPassLayer = OverPassLayer;
-(L as any).overpassLayer = options => new L.OverPassLayer(options);
+(L as any).OverPassLayer = OverPassLayer;
+(L as any).overpassLayer = (options: L.OverPassLayerOptions) =>
+  new L.OverPassLayer(options as any);
 
 export default L;

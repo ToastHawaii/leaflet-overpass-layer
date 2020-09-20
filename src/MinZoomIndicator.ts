@@ -1,17 +1,17 @@
-import L from "leaflet";
+import * as L from "leaflet";
 
-const MinZoomIndicator = L.Control.extend({
+const MinZoomIndicator = L.Control.extend<L.Control.IMinZoomIndicator>({
   options: {},
 
   _layers: {},
 
-  initialize(options) {
+  initialize(options: L.Control.MinZoomIndicatorOptions) {
     L.Util.setOptions(this, options);
 
     this._layers = {};
   },
 
-  _addLayer(layer) {
+  _addLayer(layer: any) {
     let minZoom = 15;
 
     if (layer.options.minZoom) {
@@ -23,7 +23,7 @@ const MinZoomIndicator = L.Control.extend({
     this._updateBox(null);
   },
 
-  _removeLayer(layer) {
+  _removeLayer(layer: any) {
     this._layers[layer._leaflet_id] = null;
 
     this._updateBox(null);
@@ -33,55 +33,58 @@ const MinZoomIndicator = L.Control.extend({
     let minZoomLevel = -1;
 
     for (const key in this._layers) {
-      if (this._layers[key] !== null && this._layers[key] > minZoomLevel) {
-        minZoomLevel = this._layers[key];
+      if (
+        this._layers[key] !== null &&
+        (this._layers[key] as number) > minZoomLevel
+      ) {
+        minZoomLevel = this._layers[key] as number;
       }
     }
 
     return minZoomLevel;
   },
 
-  _updateBox(event) {
+  _updateBox(event: any) {
     const minZoomLevel = this._getMinZoomLevel();
 
     if (event !== null) {
       L.DomEvent.preventDefault(event);
     }
 
-    if (minZoomLevel == -1) {
-      this._container.innerHTML = this.options.minZoomMessageNoLayer;
+    if (minZoomLevel === -1) {
+      (this as any)._container.innerHTML = this.options.minZoomMessageNoLayer;
     } else {
-      this._container.innerHTML = this.options.minZoomMessage
-        .replace(/CURRENTZOOM/, this._map.getZoom())
-        .replace(/MINZOOMLEVEL/, minZoomLevel);
+      (this as any)._container.innerHTML = (this.options.minZoomMessage || "")
+        .replace(/CURRENTZOOM/, (this as any)._map.getZoom())
+        .replace(/MINZOOMLEVEL/, minZoomLevel + "");
     }
 
-    if (this._map.getZoom() >= minZoomLevel) {
-      this._container.style.display = "none";
+    if ((this as any)._map.getZoom() >= minZoomLevel) {
+      (this as any)._container.style.display = "none";
     } else {
-      this._container.style.display = "block";
+      (this as any)._container.style.display = "block";
     }
   },
 
-  onAdd(map) {
-    this._map = map;
+  onAdd(map: any) {
+    (this as any)._map = map;
 
-    this._map.zoomIndicator = this;
+    (this as any)._map.zoomIndicator = this;
 
-    this._container = L.DomUtil.create(
+    (this as any)._container = L.DomUtil.create(
       "div",
       "leaflet-control-minZoomIndicator"
     );
 
-    this._map.on("moveend", this._updateBox, this);
+    (this as any)._map.on("moveend", this._updateBox, this);
 
     this._updateBox(null);
 
-    return this._container;
+    return (this as any)._container;
   },
 
-  onRemove(map) {
-    L.Control.prototype.onRemove.call(this, map);
+  onRemove(map: any) {
+    (L.Control as any).prototype.onRemove.call(this, map);
 
     map.off(
       {
@@ -90,10 +93,10 @@ const MinZoomIndicator = L.Control.extend({
       this
     );
 
-    this._map = null;
+    (this as any)._map = null;
   }
-});
+} as L.Control.IMinZoomIndicator);
 
-L.Control.MinZoomIndicator = MinZoomIndicator as any;
+L.Control.MinZoomIndicator = MinZoomIndicator;
 
 export default MinZoomIndicator;
