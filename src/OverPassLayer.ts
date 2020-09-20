@@ -565,4 +565,4 @@ const OverPassLayer = L.FeatureGroup.extend({
 L.OverPassLayer = OverPassLayer;
 (L as any).overpassLayer = options => new L.OverPassLayer(options);
 
-export default OverPassLayer;
+export default L;
