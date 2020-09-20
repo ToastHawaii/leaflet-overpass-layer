@@ -94,6 +94,6 @@ const MinZoomIndicator = L.Control.extend({
   }
 });
 
-L.Control.MinZoomIndicator = MinZoomIndicator;
+L.Control.MinZoomIndicator = MinZoomIndicator as any;
 
 export default MinZoomIndicator;

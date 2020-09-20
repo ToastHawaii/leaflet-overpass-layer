@@ -155,7 +155,7 @@ const OverPassLayer = L.FeatureGroup.extend({
       stroke: false,
       fillOpacity: 0.1,
       clickable: false
-    });
+    } as any);
   },
 
   _addRequestBox(box) {
@@ -200,8 +200,12 @@ const OverPassLayer = L.FeatureGroup.extend({
     const clipper = new ClipperLib.Clipper();
     const solutionPolyTree = new ClipperLib.PolyTree();
 
-    clipper.AddPaths(subjectClips, ClipperLib.PolyType.ptSubject, true);
-    clipper.AddPaths(knownClips, ClipperLib.PolyType.ptClip, true);
+    (clipper as any).AddPaths(
+      subjectClips,
+      ClipperLib.PolyType.ptSubject,
+      true
+    );
+    (clipper as any).AddPaths(knownClips, ClipperLib.PolyType.ptClip, true);
 
     clipper.Execute(
       ClipperLib.ClipType.ctDifference,
@@ -559,6 +563,6 @@ const OverPassLayer = L.FeatureGroup.extend({
 });
 
 L.OverPassLayer = OverPassLayer;
-L.overpassLayer = options => new L.OverPassLayer(options);
+(L as any).overpassLayer = options => new L.OverPassLayer(options);
 
 export default OverPassLayer;

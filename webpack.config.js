@@ -1,7 +1,6 @@
 const webpack = require('webpack');
-const path = require('path');
-const UglifyJSPlugin = require('uglify-es-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const path = require('path');
 
 module.exports = {
   context: path.join(__dirname, 'src'),
@@ -16,30 +15,44 @@ module.exports = {
     leaflet: 'L',
   },
   plugins: [
-    new webpack.NamedModulesPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
-    new UglifyJSPlugin({
-      compress: {
-        drop_console: true,
-      },
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: '*.css*',
+        },
+      ],
     }),
-    new CopyWebpackPlugin([
-      {
-        from: '*.css*',
-      },
-    ]),
   ],
   mode: 'production',
+
+  resolve: {
+    // Add '.ts' and '.tsx' as resolvable extensions.
+    extensions: ['.ts', '.tsx', '.js', '.json'],
+  },
 
   module: {
     rules: [
       {
-        test: /\.js$/,
-        loader: 'babel-loader',
+        test: /\.(ts|js)x?$/,
         exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/env', '@babel/typescript'],
+              plugins: [
+                ['@babel/transform-runtime'],
+                '@babel/proposal-class-properties',
+                '@babel/proposal-object-rest-spread',
+              ],
+            },
+          },
+        ],
       },
+
       { test: /\.css$/, use: 'raw-loader' },
     ],
   },
