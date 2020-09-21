@@ -69,5 +69,5 @@ export interface IOverPassLayer {
     _resetData(): void;
     getData(): any;
 }
-declare const OverPassLayer: (new (...args: any[]) => any) & typeof L.Class;
+declare const OverPassLayer: (new (...args: any[]) => IOverPassLayer) & typeof L.Class;
 export default OverPassLayer;

@@ -79,7 +79,7 @@ export interface IOverPassLayer {
   getData(): any;
 }
 
-const OverPassLayer = L.FeatureGroup.extend({
+const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
   options: {
     debug: false,
     minZoom: 15,
