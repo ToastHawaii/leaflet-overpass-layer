@@ -20,10 +20,10 @@
     "openstreetmap"
   ],
   "main": "dist/index.js",
-  "types": "src/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --progress",
+    "build": "webpack --progress && tsc --build ./src/tsconfig.json",
     "watch": "webpack -w --progress",
     "precommit": "lint-staged"
   },

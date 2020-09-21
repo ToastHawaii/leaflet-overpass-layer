@@ -18,7 +18,7 @@ export interface ElementsItem {
   type: string;
 }
 export interface Tags {
-  [name: string]: string;
+  [name: string]: string | undefined;
   "addr:city"?: string;
   "addr:conscriptionnumber"?: string;
   "addr:country"?: string;

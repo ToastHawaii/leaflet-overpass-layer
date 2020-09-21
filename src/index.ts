@@ -79,7 +79,7 @@ export interface IOverPassLayer {
   getData(): any;
 }
 
-const OverPassLayer = L.FeatureGroup.extend({
+const overPassLayer = L.FeatureGroup.extend({
   options: {
     debug: false,
     minZoom: 15,
@@ -427,6 +427,8 @@ const OverPassLayer = L.FeatureGroup.extend({
       (this as any)._removeNextRequest();
       nextRequest();
     }
+
+    return undefined;
   },
 
   _retry(bounds: any) {
@@ -543,7 +545,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     (this as any)._onRequestCompleteCallback(bounds);
   },
 
-  _onRequestTimeout(xhr: any, url: any, bounds: any) {
+  _onRequestTimeout(xhr: any, _url: any, bounds: any) {
     (this as any).options.onTimeout.call(this, xhr);
 
     if ((this as any).options.retryOnTimeout) {
@@ -656,8 +658,10 @@ const OverPassLayer = L.FeatureGroup.extend({
   }
 } as IOverPassLayer);
 
-(L as any).OverPassLayer = OverPassLayer;
-(L as any).overpassLayer = (options: OverPassLayerOptions) =>
-  new (OverPassLayer as any)(options as any);
+declare module "leaflet" {
+  var OverPassLayer: typeof overPassLayer;
+}
 
-export default L;
+(L as any).OverPassLayer = overPassLayer;
+(L as any).overpassLayer = (options: OverPassLayerOptions) =>
+  new (overPassLayer as any)(options as any);

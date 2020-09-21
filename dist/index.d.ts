@@ -1,13 +1,14 @@
 import * as L from "leaflet";
+import "./OverPassLayer.css";
+import "./MinZoomIndicator";
 import * as OverPass from "./OverPass";
-declare module "leaflet" {
-  export type OverPassLayerOptions = {
+export declare type OverPassLayerOptions = {
     debug?: boolean;
     minZoom?: number;
     endPoints?: {
-      url: string;
-      extendQuerySupport: boolean;
-      bounds?: number[];
+        url: string;
+        extendQuerySupport: boolean;
+        bounds?: number[];
     }[];
     query?: string;
     loadedBounds?: number[];
@@ -24,12 +25,11 @@ declare module "leaflet" {
     onTimeout?(): void;
     minZoomIndicatorEnabled?: boolean;
     minZoomIndicatorOptions?: {
-      minZoomMessageNoLayer?: string;
-      minZoomMessage?: string;
+        minZoomMessageNoLayer?: string;
+        minZoomMessage?: string;
     };
-  };
-
-  export interface IOverPassLayer {
+};
+export interface IOverPassLayer {
     _initDB(): Promise<void>;
     initialize(options: OverPassLayerOptions): void;
     _getPoiPopupHTML(tags: any, id: any): HTMLDivElement;
@@ -45,11 +45,7 @@ declare module "leaflet" {
     _addLoadedBounds(bounds: any): void;
     _buildClipsFromBounds(bounds: any): any;
     _buildBoundsFromClips(clips: any): any;
-    _buildOverpassUrlFromEndPointAndQuery(
-      endPoint: any,
-      query: any,
-      bounds: any
-    ): string;
+    _buildOverpassUrlFromEndPointAndQuery(endPoint: any, query: any, bounds: any): string;
     _buildLargerBounds(bounds: any): any;
     _setRequestInProgress(isInProgress: any): void;
     _isRequestInProgress(): any;
@@ -72,33 +68,9 @@ declare module "leaflet" {
     setQuery(query: any): void;
     _resetData(): void;
     getData(): any;
-  }
-
-  export var OverPassLayer: (new (...args: any[]) => IOverPassLayer) &
-    typeof L.FeatureGroup;
-
-  export var overPassLayer: IOverPassLayer & L.FeatureGroup;
-
-  export namespace Control {
-    export type MinZoomIndicatorOptions = {
-      minZoom?: number;
-      minZoomMessageNoLayer?: string;
-      minZoomMessage?: string;
-    } & L.ControlOptions;
-
-    export interface IMinZoomIndicator {
-      options: MinZoomIndicatorOptions;
-      _layers: { [id: string]: number | null };
-      initialize(options: MinZoomIndicatorOptions): void;
-      _addLayer(layer: any): void;
-      _removeLayer(layer: any): void;
-      _getMinZoomLevel(): number;
-      _updateBox(event: any): void;
-      onAdd(map: L.Map): HTMLElement;
-      onRemove(map: L.Map): void;
-    }
-
-    export var MinZoomIndicator: (new (...args: any[]) => IMinZoomIndicator) &
-      typeof L.Control;
-  }
 }
+declare const overPassLayer: (new (...args: any[]) => any) & typeof L.Class;
+declare module "leaflet" {
+    var OverPassLayer: typeof overPassLayer;
+}
+export {};
