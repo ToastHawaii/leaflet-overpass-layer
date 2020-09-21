@@ -79,7 +79,7 @@ export interface IOverPassLayer {
   getData(): any;
 }
 
-const overPassLayer = L.FeatureGroup.extend({
+const OverPassLayer = L.FeatureGroup.extend({
   options: {
     debug: false,
     minZoom: 15,
@@ -658,10 +658,4 @@ const overPassLayer = L.FeatureGroup.extend({
   }
 } as IOverPassLayer);
 
-declare module "leaflet" {
-  var OverPassLayer: typeof overPassLayer;
-}
-
-(L as any).OverPassLayer = overPassLayer;
-(L as any).overpassLayer = (options: OverPassLayerOptions) =>
-  new (overPassLayer as any)(options as any);
+export default OverPassLayer;
