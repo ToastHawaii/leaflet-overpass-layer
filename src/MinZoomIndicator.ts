@@ -1,11 +1,29 @@
 import * as L from "leaflet";
 
-const MinZoomIndicator = L.Control.extend<L.Control.IMinZoomIndicator>({
+type MinZoomIndicatorOptions = {
+  minZoom?: number;
+  minZoomMessageNoLayer?: string;
+  minZoomMessage?: string;
+} & L.ControlOptions;
+
+interface IMinZoomIndicator {
+  options: MinZoomIndicatorOptions;
+  _layers: { [id: string]: number | null };
+  initialize(options: MinZoomIndicatorOptions): void;
+  _addLayer(layer: any): void;
+  _removeLayer(layer: any): void;
+  _getMinZoomLevel(): number;
+  _updateBox(event: any): void;
+  onAdd(map: L.Map): HTMLElement;
+  onRemove(map: L.Map): void;
+}
+
+const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
   options: {},
 
   _layers: {},
 
-  initialize(options: L.Control.MinZoomIndicatorOptions) {
+  initialize(options: MinZoomIndicatorOptions) {
     L.Util.setOptions(this, options);
 
     this._layers = {};
@@ -95,8 +113,8 @@ const MinZoomIndicator = L.Control.extend<L.Control.IMinZoomIndicator>({
 
     (this as any)._map = null;
   }
-} as L.Control.IMinZoomIndicator);
+} as IMinZoomIndicator);
 
-L.Control.MinZoomIndicator = MinZoomIndicator;
+(L.Control as any).MinZoomIndicator = MinZoomIndicator;
 
 export default MinZoomIndicator;

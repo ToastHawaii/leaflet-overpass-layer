@@ -1,5 +1,5 @@
-import "leaflet";
-
+import * as L from "leaflet";
+import * as OverPass from "./OverPass";
 declare module "leaflet" {
   export type OverPassLayerOptions = {
     debug?: boolean;
@@ -74,12 +74,12 @@ declare module "leaflet" {
     getData(): any;
   }
 
-  export declare var OverPassLayer: (new (...args: any[]) => L.OverPassLayer) &
+  export var OverPassLayer: (new (...args: any[]) => IOverPassLayer) &
     typeof L.FeatureGroup;
 
-  export declare var overPassLayer: L.OverPassLayer & L.FeatureGroup;
+  export var overPassLayer: IOverPassLayer & L.FeatureGroup;
 
-  namespace Control {
+  export namespace Control {
     export type MinZoomIndicatorOptions = {
       minZoom?: number;
       minZoomMessageNoLayer?: string;
@@ -98,9 +98,7 @@ declare module "leaflet" {
       onRemove(map: L.Map): void;
     }
 
-    export declare var MinZoomIndicator: (new (
-      ...args: any[]
-    ) => L.MinZoomIndicator) &
+    export var MinZoomIndicator: (new (...args: any[]) => IMinZoomIndicator) &
       typeof L.Control;
   }
 }

@@ -4,6 +4,80 @@ import { openDB } from "idb";
 import "./OverPassLayer.css";
 import "./MinZoomIndicator";
 import * as md5 from "md5";
+import MinZoomIndicator from "./MinZoomIndicator";
+import * as OverPass from "./OverPass";
+export type OverPassLayerOptions = {
+  debug?: boolean;
+  minZoom?: number;
+  endPoints?: {
+    url: string;
+    extendQuerySupport: boolean;
+    bounds?: number[];
+  }[];
+  query?: string;
+  loadedBounds?: number[];
+  markerIcon?: null;
+  timeout?: number;
+  retryOnTimeout?: boolean;
+  noInitialRequest?: boolean;
+  cacheEnabled?: boolean;
+  cacheTTL?: number;
+  beforeRequest?(): void;
+  afterRequest?(): void;
+  onSuccess?(data: OverPass.RootObject[]): void;
+  onError?(): void;
+  onTimeout?(): void;
+  minZoomIndicatorEnabled?: boolean;
+  minZoomIndicatorOptions?: {
+    minZoomMessageNoLayer?: string;
+    minZoomMessage?: string;
+  };
+};
+
+export interface IOverPassLayer {
+  _initDB(): Promise<void>;
+  initialize(options: OverPassLayerOptions): void;
+  _getPoiPopupHTML(tags: any, id: any): HTMLDivElement;
+  _buildRequestBox(bounds: any): any;
+  _addRequestBox(box: any): any;
+  _getRequestBoxes(): any;
+  _removeRequestBox(box: any): void;
+  _removeRequestBoxes(): any;
+  _addResponseBox(box: any): any;
+  _addResponseBoxes(requestBoxes: any): void;
+  _isFullyLoadedBounds(bounds: any, loadedBounds: any): boolean;
+  _getLoadedBounds(): any;
+  _addLoadedBounds(bounds: any): void;
+  _buildClipsFromBounds(bounds: any): any;
+  _buildBoundsFromClips(clips: any): any;
+  _buildOverpassUrlFromEndPointAndQuery(
+    endPoint: any,
+    query: any,
+    bounds: any
+  ): string;
+  _buildLargerBounds(bounds: any): any;
+  _setRequestInProgress(isInProgress: any): void;
+  _isRequestInProgress(): any;
+  _hasNextRequest(): boolean;
+  _getNextRequest(): any;
+  _setNextRequest(nextRequest: any): void;
+  _removeNextRequest(): void;
+  _prepareRequest(): false | undefined;
+  _retry(bounds: any): void;
+  _nextEndPoint(requestBounds: any): void;
+  _sendRequest(bounds: any): void;
+  _endPointSupportsBounds(bounds: any): boolean | undefined;
+  _onRequestLoad(xhr: any, bounds: any): void;
+  _onRequestTimeout(xhr: any, url: any, bounds: any): void;
+  _onRequestLoadCallback(bounds: any): void;
+  _onRequestErrorCallback(bounds: any): void;
+  _onRequestCompleteCallback(): void;
+  onAdd(map: any): void;
+  onRemove(map: any): void;
+  setQuery(query: any): void;
+  _resetData(): void;
+  getData(): any;
+}
 
 const OverPassLayer = L.FeatureGroup.extend({
   options: {
@@ -108,7 +182,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
-  initialize(options) {
+  initialize(options: any) {
     L.Util.setOptions(this, options);
 
     // Random endpoint
@@ -124,7 +198,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
-  _getPoiPopupHTML(tags, id) {
+  _getPoiPopupHTML(tags: any, id: any) {
     let row;
     const link = document.createElement("a");
     const table = document.createElement("table");
@@ -148,7 +222,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     return div;
   },
 
-  _buildRequestBox(bounds) {
+  _buildRequestBox(bounds: any) {
     return L.rectangle(bounds, {
       bounds: bounds,
       color: "#204a87",
@@ -158,7 +232,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     } as any);
   },
 
-  _addRequestBox(box) {
+  _addRequestBox(box: any) {
     return (this as any)._requestBoxes.addLayer(box);
   },
 
@@ -166,7 +240,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     return (this as any)._requestBoxes.getLayers();
   },
 
-  _removeRequestBox(box) {
+  _removeRequestBox(box: any) {
     (this as any)._requestBoxes.removeLayer(box);
   },
 
@@ -174,11 +248,11 @@ const OverPassLayer = L.FeatureGroup.extend({
     return (this as any)._requestBoxes.clearLayers();
   },
 
-  _addResponseBox(box) {
+  _addResponseBox(box: any) {
     return (this as any)._responseBoxes.addLayer(box);
   },
 
-  _addResponseBoxes(requestBoxes) {
+  _addResponseBoxes(requestBoxes: any) {
     (this as any)._removeRequestBoxes();
 
     requestBoxes.forEach((box: any) => {
@@ -190,7 +264,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     });
   },
 
-  _isFullyLoadedBounds(bounds, loadedBounds) {
+  _isFullyLoadedBounds(bounds: any, loadedBounds: any) {
     if (loadedBounds.length === 0) {
       return false;
     }
@@ -229,11 +303,11 @@ const OverPassLayer = L.FeatureGroup.extend({
     return (this as any)._loadedBounds;
   },
 
-  _addLoadedBounds(bounds) {
+  _addLoadedBounds(bounds: any) {
     (this as any)._loadedBounds.push(bounds);
   },
 
-  _buildClipsFromBounds(bounds) {
+  _buildClipsFromBounds(bounds: any) {
     return bounds.map((bound: any) => [
       {
         X: bound._southWest.lng * 1000000,
@@ -254,7 +328,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     ]);
   },
 
-  _buildBoundsFromClips(clips) {
+  _buildBoundsFromClips(clips: any) {
     return clips.map((clip: any) =>
       L.latLngBounds(
         L.latLng(clip[0].Y / 1000000, clip[0].X / 1000000).wrap(),
@@ -263,7 +337,11 @@ const OverPassLayer = L.FeatureGroup.extend({
     );
   },
 
-  _buildOverpassUrlFromEndPointAndQuery(endPoint, query, bounds) {
+  _buildOverpassUrlFromEndPointAndQuery(
+    endPoint: any,
+    query: any,
+    bounds: any
+  ) {
     const sw = bounds._southWest;
     const ne = bounds._northEast;
     const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(",");
@@ -290,7 +368,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }][bbox:${coordinates}];${query}`;
   },
 
-  _buildLargerBounds(bounds) {
+  _buildLargerBounds(bounds: any) {
     const width = Math.abs(bounds._northEast.lng - bounds._southWest.lng);
     const height = Math.abs(bounds._northEast.lat - bounds._southWest.lat);
 
@@ -305,7 +383,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     );
   },
 
-  _setRequestInProgress(isInProgress) {
+  _setRequestInProgress(isInProgress: any) {
     (this as any)._requestInProgress = isInProgress;
   },
 
@@ -325,7 +403,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     return (this as any)._nextRequest;
   },
 
-  _setNextRequest(nextRequest) {
+  _setNextRequest(nextRequest: any) {
     (this as any)._nextRequest = nextRequest;
   },
 
@@ -351,12 +429,12 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
-  _retry(bounds) {
+  _retry(bounds: any) {
     (this as any)._nextEndPoint(bounds);
     (this as any)._sendRequest(bounds);
   },
 
-  _nextEndPoint(requestBounds) {
+  _nextEndPoint(requestBounds: any) {
     if (
       (this as any)._endPointsIndex <
       (this as any).options.endPoints.length - 1
@@ -370,7 +448,7 @@ const OverPassLayer = L.FeatureGroup.extend({
       (this as any)._nextEndPoint(requestBounds);
   },
 
-  _sendRequest(bounds) {
+  _sendRequest(bounds: any) {
     const loadedBounds = (this as any)._getLoadedBounds();
 
     if ((this as any)._isFullyLoadedBounds(bounds, loadedBounds)) {
@@ -422,7 +500,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     request.send();
   },
 
-  _endPointSupportsBounds(bounds) {
+  _endPointSupportsBounds(bounds: any) {
     const supportedBounds = (this as any).options.endPoints[
       (this as any)._endPointsIndex
     ].bounds;
@@ -435,7 +513,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     );
   },
 
-  _onRequestLoad(xhr, bounds) {
+  _onRequestLoad(xhr: any, bounds: any) {
     if (xhr.status >= 200 && xhr.status < 400) {
       let result = JSON.parse(xhr.response);
       (this as any).options.onSuccess.call(this, result);
@@ -465,7 +543,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     (this as any)._onRequestCompleteCallback(bounds);
   },
 
-  _onRequestTimeout(xhr, url, bounds) {
+  _onRequestTimeout(xhr: any, url: any, bounds: any) {
     (this as any).options.onTimeout.call(this, xhr);
 
     if ((this as any).options.retryOnTimeout) {
@@ -476,7 +554,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
-  _onRequestLoadCallback(bounds) {
+  _onRequestLoadCallback(bounds: any) {
     (this as any)._addLoadedBounds(bounds);
 
     if ((this as any).options.debug) {
@@ -484,7 +562,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
-  _onRequestErrorCallback(bounds) {
+  _onRequestErrorCallback(bounds: any) {
     if ((this as any).options.debug) {
       (this as any)._removeRequestBox((this as any)._buildRequestBox(bounds));
     }
@@ -504,7 +582,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     }
   },
 
-  onAdd(map) {
+  onAdd(map: any) {
     (this as any)._map = map;
 
     if ((this as any).options.minZoomIndicatorEnabled === true) {
@@ -512,7 +590,7 @@ const OverPassLayer = L.FeatureGroup.extend({
         (this as any)._zoomControl = (this as any)._map.zoomIndicator;
         (this as any)._zoomControl._addLayer(this);
       } else {
-        (this as any)._zoomControl = new L.Control.MinZoomIndicator(
+        (this as any)._zoomControl = new MinZoomIndicator(
           (this as any).options.minZoomIndicatorOptions
         );
 
@@ -539,7 +617,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     (this as any)._map.on("moveend", (this as any)._prepareRequest, this);
   },
 
-  onRemove(map) {
+  onRemove(map: any) {
     L.LayerGroup.prototype.onRemove.call(this, map);
 
     (this as any)._resetData();
@@ -549,7 +627,7 @@ const OverPassLayer = L.FeatureGroup.extend({
     (this as any)._map = null;
   },
 
-  setQuery(query) {
+  setQuery(query: any) {
     (this as any).options.query = query;
     (this as any)._resetData();
 
@@ -576,10 +654,10 @@ const OverPassLayer = L.FeatureGroup.extend({
   getData() {
     return (this as any)._data;
   }
-} as L.IOverPassLayer);
+} as IOverPassLayer);
 
 (L as any).OverPassLayer = OverPassLayer;
-(L as any).overpassLayer = (options: L.OverPassLayerOptions) =>
-  new L.OverPassLayer(options as any);
+(L as any).overpassLayer = (options: OverPassLayerOptions) =>
+  new (OverPassLayer as any)(options as any);
 
 export default L;
