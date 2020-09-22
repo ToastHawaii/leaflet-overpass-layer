@@ -683,9 +683,9 @@ const overPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
   (new (options: OverPassLayerOptions) => IOverPassLayer);
 
 declare module "leaflet" {
-  module FeatureGroup {
-    var OverPassLayer: typeof overPassLayer;
-  }
+  var OverPassLayer: typeof overPassLayer;
 }
+
+(L as any).OverPassLayer = overPassLayer;
 
 export default overPassLayer;
