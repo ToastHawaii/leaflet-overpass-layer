@@ -18,6 +18,10 @@ interface IMinZoomIndicator {
   onRemove(map: L.Map): void;
 }
 
+export interface MapWithZoomIndicator extends L.Map {
+  zoomIndicator?: IMinZoomIndicator;
+}
+
 const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
   options: {},
 

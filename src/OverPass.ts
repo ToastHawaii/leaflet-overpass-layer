@@ -12,6 +12,7 @@ export interface ElementsItem {
   id: number;
   lat?: number;
   lon?: number;
+  center?: { lat?: number; lon?: number };
   members?: MembersItem[];
   nodes?: number[];
   tags?: Tags;
