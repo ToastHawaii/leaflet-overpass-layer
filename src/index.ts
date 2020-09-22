@@ -688,4 +688,5 @@ declare module "leaflet" {
 
 (L as any).OverPassLayer = overPassLayer;
 
+export type OverPassLayer = typeof overPassLayer;
 export default overPassLayer;
