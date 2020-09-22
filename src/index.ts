@@ -680,7 +680,8 @@ const overPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
     return this._data;
   }
 } as IOverPassLayer) as any) as IOverPassLayer &
-  (new (options: OverPassLayerOptions) => IOverPassLayer);
+  (new (options: OverPassLayerOptions) => IOverPassLayer) &
+  L.FeatureGroup;
 
 declare module "leaflet" {
   var OverPassLayer: typeof overPassLayer;
