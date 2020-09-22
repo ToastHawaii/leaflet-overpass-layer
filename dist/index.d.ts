@@ -88,6 +88,8 @@ export interface IOverPassLayer {
 }
 declare const overPassLayer: IOverPassLayer & (new (options: OverPassLayerOptions) => IOverPassLayer);
 declare module "leaflet" {
-    var OverPassLayer: typeof overPassLayer;
+    module FeatureGroup {
+        var OverPassLayer: typeof overPassLayer;
+    }
 }
 export default overPassLayer;
