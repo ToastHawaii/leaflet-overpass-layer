@@ -97,7 +97,7 @@ export interface IOverPassLayer {
   getData(): any;
 }
 
-const overPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
+const overPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
   _responseBoxes: undefined,
   _nextRequest: undefined,
   _map: undefined,
@@ -679,15 +679,14 @@ const overPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
   getData() {
     return this._data;
   }
-} as IOverPassLayer) as any) as IOverPassLayer &
-  (new (options: OverPassLayerOptions) => IOverPassLayer) &
-  L.FeatureGroup;
+} as IOverPassLayer) as any;
 
 declare module "leaflet" {
-  var OverPassLayer: typeof overPassLayer;
+  var OverPassLayer: new (options: OverPassLayerOptions) => IOverPassLayer &
+    L.FeatureGroup;
 }
 
 (L as any).OverPassLayer = overPassLayer;
 
-export type OverPassLayer = typeof overPassLayer;
+export type OverPassLayer = IOverPassLayer & L.FeatureGroup;
 export default overPassLayer;
