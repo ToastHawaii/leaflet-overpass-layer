@@ -4,7 +4,10 @@ import { openDB } from "idb";
 import "./OverPassLayer.css";
 import "./MinZoomIndicator";
 import * as md5 from "md5";
-import MinZoomIndicator, { MapWithZoomIndicator } from "./MinZoomIndicator";
+import MinZoomIndicator, {
+  MapWithZoomIndicator,
+  MinZoomIndicatorOptions
+} from "./MinZoomIndicator";
 import * as OverPass from "./OverPass";
 
 export type OverPassLayerOptions = {
@@ -17,7 +20,7 @@ export type OverPassLayerOptions = {
   }[];
   query?: string;
   loadedBounds: any[];
-  markerIcon?: null;
+  markerIcon?: L.Icon | L.DivIcon | null;
   timeout?: number;
   retryOnTimeout?: boolean;
   noInitialRequest?: boolean;
@@ -29,10 +32,7 @@ export type OverPassLayerOptions = {
   onError?(): void;
   onTimeout?(): void;
   minZoomIndicatorEnabled?: boolean;
-  minZoomIndicatorOptions?: {
-    minZoomMessageNoLayer?: string;
-    minZoomMessage?: string;
-  };
+  minZoomIndicatorOptions?: MinZoomIndicatorOptions;
 };
 
 export interface IOverPassLayer {
@@ -162,7 +162,7 @@ const OverPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
         }
 
         if (this.options.markerIcon) {
-          marker = L.marker(pos, { icon: this.options.markerIcon as any });
+          marker = L.marker(pos, { icon: this.options.markerIcon });
         } else {
           marker = L.circle(pos, 20, {
             stroke: false,
@@ -619,7 +619,7 @@ const OverPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
         this._zoomControl._addLayer(this);
       } else {
         this._zoomControl = new MinZoomIndicator(
-          this.options.minZoomIndicatorOptions as any
+          this.options.minZoomIndicatorOptions
         );
 
         this._map.addControl(this._zoomControl);

@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-declare type MinZoomIndicatorOptions = {
+export declare type MinZoomIndicatorOptions = {
     minZoom?: number;
     minZoomMessageNoLayer?: string;
     minZoomMessage?: string;
@@ -7,7 +7,7 @@ declare type MinZoomIndicatorOptions = {
 export interface MapWithZoomIndicator extends L.Map {
     zoomIndicator?: IMinZoomIndicator;
 }
-interface IMinZoomIndicator {
+export interface IMinZoomIndicator {
     _map?: MapWithZoomIndicator | null;
     _container: HTMLElement;
     options: MinZoomIndicatorOptions;

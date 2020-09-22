@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import "./OverPassLayer.css";
 import "./MinZoomIndicator";
-import { MapWithZoomIndicator } from "./MinZoomIndicator";
+import { MapWithZoomIndicator, MinZoomIndicatorOptions } from "./MinZoomIndicator";
 import * as OverPass from "./OverPass";
 export declare type OverPassLayerOptions = {
     debug?: boolean;
@@ -13,7 +13,7 @@ export declare type OverPassLayerOptions = {
     }[];
     query?: string;
     loadedBounds: any[];
-    markerIcon?: null;
+    markerIcon?: L.Icon | L.DivIcon | null;
     timeout?: number;
     retryOnTimeout?: boolean;
     noInitialRequest?: boolean;
@@ -25,10 +25,7 @@ export declare type OverPassLayerOptions = {
     onError?(): void;
     onTimeout?(): void;
     minZoomIndicatorEnabled?: boolean;
-    minZoomIndicatorOptions?: {
-        minZoomMessageNoLayer?: string;
-        minZoomMessage?: string;
-    };
+    minZoomIndicatorOptions?: MinZoomIndicatorOptions;
 };
 export interface IOverPassLayer {
     _markers: any;
