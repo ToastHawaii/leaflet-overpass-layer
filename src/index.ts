@@ -13,7 +13,7 @@ export type OverPassLayerOptions = {
   endPoints?: {
     url: string;
     extendQuerySupport: boolean;
-    bounds?: any;
+    bounds?: [number, number, number, number];
   }[];
   query?: string;
   loadedBounds: any[];
@@ -38,7 +38,7 @@ export type OverPassLayerOptions = {
 export interface IOverPassLayer {
   _markers: any;
   _db: any;
-  _loadedBounds: any;
+  _loadedBounds: any[];
   _requestInProgress: boolean;
   _responseBoxes: any;
   _nextRequest: any;
@@ -49,22 +49,26 @@ export interface IOverPassLayer {
   _initDB(): Promise<void>;
   _ids: { [id: number]: boolean };
   initialize(options: OverPassLayerOptions): void;
-  _getPoiPopupHTML(tags: any, id: any): HTMLDivElement;
-  _buildRequestBox(bounds: any): any;
-  _addRequestBox(box: any): any;
-  _getRequestBoxes(): any;
+  _getPoiPopupHTML(tags: OverPass.Tags, id: number): HTMLDivElement;
+  _buildRequestBox(bounds: any): L.Rectangle;
+  _addRequestBox(box: L.Rectangle): L.FeatureGroup<any>;
+  _getRequestBoxes(): L.Layer[];
   _removeRequestBox(box: any): void;
   _removeRequestBoxes(): any;
   _addResponseBox(box: any): any;
-  _addResponseBoxes(requestBoxes: any): void;
-  _isFullyLoadedBounds(bounds: any, loadedBounds: any): boolean;
-  _getLoadedBounds(): any;
+  _addResponseBoxes(requestBoxes: L.Layer[]): void;
+  _isFullyLoadedBounds(bounds: any, loadedBounds: any[]): boolean;
+  _getLoadedBounds(): any[];
   _addLoadedBounds(bounds: any): void;
-  _buildClipsFromBounds(bounds: any): any;
+  _buildClipsFromBounds(bounds: any[]): any;
   _buildBoundsFromClips(clips: any): any;
   _buildOverpassUrlFromEndPointAndQuery(
-    endPoint: any,
-    query: any,
+    endPoint: {
+      url: string;
+      extendQuerySupport: boolean;
+      bounds?: [number, number, number, number];
+    },
+    query: string,
     bounds: any
   ): string;
   _buildLargerBounds(bounds: any): any;
@@ -86,9 +90,9 @@ export interface IOverPassLayer {
   _onRequestErrorCallback(bounds: any): void;
   _onRequestCompleteCallback(bounds: any): void;
   options: Required<OverPassLayerOptions>;
-  onAdd(map: any): void;
-  onRemove(map: any): void;
-  setQuery(query: any): void;
+  onAdd(map: L.Map): void;
+  onRemove(map: L.Map): void;
+  setQuery(query: string): void;
   _resetData(): void;
   getData(): any;
 }
@@ -167,6 +171,8 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
           });
         }
 
+        if (!e.tags) throw "Unexpected undefined";
+
         const popupContent = this._getPoiPopupHTML(e.tags, e.id);
         const popup = L.popup().setContent(popupContent);
         marker.bindPopup(popup);
@@ -226,7 +232,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     }
   },
 
-  _getPoiPopupHTML(tags: any, id: any) {
+  _getPoiPopupHTML(tags: OverPass.Tags, id: number) {
     let row;
     const link = document.createElement("a");
     const table = document.createElement("table");
@@ -241,7 +247,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     for (const key in tags) {
       row = table.insertRow(0);
       row.insertCell(0).appendChild(document.createTextNode(key));
-      row.insertCell(1).appendChild(document.createTextNode(tags[key]));
+      row.insertCell(1).appendChild(document.createTextNode(tags[key] + ""));
     }
 
     div.appendChild(link);
@@ -260,7 +266,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     } as any);
   },
 
-  _addRequestBox(box: any) {
+  _addRequestBox(box: L.Rectangle) {
     return this._requestBoxes?.addLayer(box);
   },
 
@@ -280,7 +286,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     return this._responseBoxes.addLayer(box);
   },
 
-  _addResponseBoxes(requestBoxes: any) {
+  _addResponseBoxes(requestBoxes: L.Layer[]) {
     this._removeRequestBoxes();
 
     requestBoxes.forEach((box: any) => {
@@ -292,7 +298,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     });
   },
 
-  _isFullyLoadedBounds(bounds: any, loadedBounds: any) {
+  _isFullyLoadedBounds(bounds: any, loadedBounds: any[]) {
     if (loadedBounds.length === 0) {
       return false;
     }
@@ -335,7 +341,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     this._loadedBounds.push(bounds);
   },
 
-  _buildClipsFromBounds(bounds: any) {
+  _buildClipsFromBounds(bounds: any[]) {
     return bounds.map((bound: any) => [
       {
         X: bound._southWest.lng * 1000000,
@@ -366,8 +372,12 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
   },
 
   _buildOverpassUrlFromEndPointAndQuery(
-    endPoint: any,
-    query: any,
+    endPoint: {
+      url: string;
+      extendQuerySupport: boolean;
+      bounds?: [number, number, number, number];
+    },
+    query: string,
     bounds: any
   ) {
     const sw = bounds._southWest;
@@ -632,7 +642,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     this._map.on("moveend", this._prepareRequest, this);
   },
 
-  onRemove(map: any) {
+  onRemove(map: L.Map) {
     L.LayerGroup.prototype.onRemove.call(this, map);
 
     this._resetData();
@@ -642,7 +652,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
     this._map = null;
   },
 
-  setQuery(query: any) {
+  setQuery(query: string) {
     this.options.query = query;
     this._resetData();
 

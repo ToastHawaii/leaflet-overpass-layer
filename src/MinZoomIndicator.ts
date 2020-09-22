@@ -6,20 +6,21 @@ type MinZoomIndicatorOptions = {
   minZoomMessage?: string;
 } & L.ControlOptions;
 
+export interface MapWithZoomIndicator extends L.Map {
+  zoomIndicator?: IMinZoomIndicator;
+}
 interface IMinZoomIndicator {
+  _map?: MapWithZoomIndicator | null;
+  _container: HTMLElement;
   options: MinZoomIndicatorOptions;
   _layers: { [id: string]: number | null };
   initialize(options: MinZoomIndicatorOptions): void;
   _addLayer(layer: any): void;
   _removeLayer(layer: any): void;
   _getMinZoomLevel(): number;
-  _updateBox(event: any): void;
+  _updateBox(event: L.LeafletEvent | null): void;
   onAdd(map: L.Map): HTMLElement;
   onRemove(map: L.Map): void;
-}
-
-export interface MapWithZoomIndicator extends L.Map {
-  zoomIndicator?: IMinZoomIndicator;
 }
 
 const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
@@ -66,46 +67,48 @@ const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
     return minZoomLevel;
   },
 
-  _updateBox(event: any) {
+  _updateBox(event: L.LeafletEvent) {
     const minZoomLevel = this._getMinZoomLevel();
 
     if (event !== null) {
-      L.DomEvent.preventDefault(event);
+      L.DomEvent.preventDefault(event as any);
     }
 
+    if (!this._container || !this._map) throw "Unexpected undefined";
+
     if (minZoomLevel === -1) {
-      (this as any)._container.innerHTML = this.options.minZoomMessageNoLayer;
+      this._container.innerHTML = this.options.minZoomMessageNoLayer + "";
     } else {
-      (this as any)._container.innerHTML = (this.options.minZoomMessage || "")
-        .replace(/CURRENTZOOM/, (this as any)._map.getZoom())
+      this._container.innerHTML = (this.options.minZoomMessage || "")
+        .replace(/CURRENTZOOM/, this._map.getZoom() + "")
         .replace(/MINZOOMLEVEL/, minZoomLevel + "");
     }
 
-    if ((this as any)._map.getZoom() >= minZoomLevel) {
-      (this as any)._container.style.display = "none";
+    if (this._map.getZoom() >= minZoomLevel) {
+      this._container.style.display = "none";
     } else {
-      (this as any)._container.style.display = "block";
+      this._container.style.display = "block";
     }
   },
 
-  onAdd(map: any) {
-    (this as any)._map = map;
+  onAdd(map: L.Map) {
+    this._map = map;
 
-    (this as any)._map.zoomIndicator = this;
+    this._map.zoomIndicator = this;
 
-    (this as any)._container = L.DomUtil.create(
+    this._container = L.DomUtil.create(
       "div",
       "leaflet-control-minZoomIndicator"
     );
 
-    (this as any)._map.on("moveend", this._updateBox, this);
+    this._map.on("moveend", this._updateBox, this);
 
     this._updateBox(null);
 
-    return (this as any)._container;
+    return this._container;
   },
 
-  onRemove(map: any) {
+  onRemove(map: L.Map) {
     (L.Control as any).prototype.onRemove.call(this, map);
 
     map.off(
@@ -115,7 +118,7 @@ const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
       this
     );
 
-    (this as any)._map = null;
+    this._map = null;
   }
 } as IMinZoomIndicator);
 
