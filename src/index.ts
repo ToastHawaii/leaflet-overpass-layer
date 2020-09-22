@@ -19,7 +19,7 @@ export type OverPassLayerOptions = {
     bounds?: [number, number, number, number];
   }[];
   query?: string;
-  loadedBounds: any[];
+  loadedBounds?: any[];
   markerIcon?: L.Icon | L.DivIcon | null;
   timeout?: number;
   retryOnTimeout?: boolean;
