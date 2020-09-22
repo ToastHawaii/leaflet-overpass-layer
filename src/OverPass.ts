@@ -8,16 +8,31 @@ export interface Osm3s {
   copyright: string;
   timestamp_osm_base: string;
 }
-export interface ElementsItem {
+
+export interface NodeItem {
   id: number;
-  lat?: number;
-  lon?: number;
+  lat: number;
+  lon: number;
+  tags?: Tags;
+  type: "node";
+}
+export interface WayItem {
+  id: number;
   center?: { lat?: number; lon?: number };
-  members?: MembersItem[];
   nodes?: number[];
   tags?: Tags;
-  type: string;
+  type: "way";
 }
+export interface RelationItem {
+  id: number;
+  center?: { lat?: number; lon?: number };
+  members?: MembersItem[];
+  tags?: Tags;
+  type: "relation";
+}
+
+export type ElementsItem = NodeItem | WayItem | RelationItem;
+
 export interface Tags {
   [name: string]: string | undefined;
   "addr:city"?: string;
