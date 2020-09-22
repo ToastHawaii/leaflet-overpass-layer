@@ -97,7 +97,7 @@ export interface IOverPassLayer {
   getData(): any;
 }
 
-const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
+const OverPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
   _responseBoxes: undefined,
   _nextRequest: undefined,
   _map: undefined,
@@ -679,6 +679,7 @@ const OverPassLayer = L.FeatureGroup.extend<IOverPassLayer>({
   getData() {
     return this._data;
   }
-} as IOverPassLayer);
+} as IOverPassLayer) as any) as IOverPassLayer &
+  (new (options: OverPassLayerOptions) => IOverPassLayer);
 
 export default OverPassLayer;
