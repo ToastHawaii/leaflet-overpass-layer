@@ -22,5 +22,10 @@ export interface IMinZoomIndicator {
     onAdd(map: L.Map): HTMLElement;
     onRemove(map: L.Map): void;
 }
-declare const MinZoomIndicator: (new (...args: any[]) => IMinZoomIndicator) & typeof L.Control;
-export default MinZoomIndicator;
+declare const minZoomIndicator: (new (...args: any[]) => IMinZoomIndicator) & typeof L.Control;
+declare module "leaflet" {
+    module Control {
+        var MinZoomIndicator: typeof minZoomIndicator;
+    }
+}
+export default minZoomIndicator;

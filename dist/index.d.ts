@@ -86,5 +86,8 @@ export interface IOverPassLayer {
     _resetData(): void;
     getData(): any;
 }
-declare const OverPassLayer: IOverPassLayer & (new (options: OverPassLayerOptions) => IOverPassLayer);
-export default OverPassLayer;
+declare const overPassLayer: IOverPassLayer & (new (options: OverPassLayerOptions) => IOverPassLayer);
+declare module "leaflet" {
+    var OverPassLayer: typeof overPassLayer;
+}
+export default overPassLayer;

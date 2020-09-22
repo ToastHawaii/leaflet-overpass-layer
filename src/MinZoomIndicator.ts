@@ -24,7 +24,7 @@ export interface IMinZoomIndicator {
   onRemove(map: L.Map): void;
 }
 
-const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
+const minZoomIndicator = L.Control.extend<IMinZoomIndicator>({
   options: {},
 
   _layers: {},
@@ -123,4 +123,12 @@ const MinZoomIndicator = L.Control.extend<IMinZoomIndicator>({
   }
 } as IMinZoomIndicator);
 
-export default MinZoomIndicator;
+declare module "leaflet" {
+  module Control {
+    var MinZoomIndicator: typeof minZoomIndicator;
+  }
+}
+
+L.Control.MinZoomIndicator = minZoomIndicator;
+
+export default minZoomIndicator;
