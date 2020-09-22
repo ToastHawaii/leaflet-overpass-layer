@@ -86,7 +86,7 @@ export interface IOverPassLayer {
     _resetData(): void;
     getData(): any;
 }
-declare const overPassLayer: any;
+declare const overPassLayer: IOverPassLayer & L.FeatureGroup<any>;
 declare module "leaflet" {
     var OverPassLayer: new (options: OverPassLayerOptions) => IOverPassLayer & L.FeatureGroup;
 }
