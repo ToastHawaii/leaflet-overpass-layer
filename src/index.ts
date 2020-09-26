@@ -217,8 +217,10 @@ const overPassLayer = (L.FeatureGroup.extend<IOverPassLayer>({
     }
   },
 
-  initialize(options: OverPassLayerOptions) {
+  initialize: function (options: OverPassLayerOptions) {
     L.Util.setOptions(this, options);
+
+    this._ids = {};
 
     // Random endpoint
     if (this.options.endPoints)
