@@ -1,4 +1,4 @@
-import * as L from "leaflet";
+import * as L from 'leaflet';
 export declare type MinZoomIndicatorOptions = {
     minZoom?: number;
     minZoomMessageNoLayer?: string;
@@ -23,7 +23,7 @@ export interface IMinZoomIndicator {
     onRemove(map: L.Map): void;
 }
 declare const minZoomIndicator: (new (...args: any[]) => IMinZoomIndicator) & typeof L.Control;
-declare module "leaflet" {
+declare module 'leaflet' {
     module Control {
         var MinZoomIndicator: typeof minZoomIndicator;
     }

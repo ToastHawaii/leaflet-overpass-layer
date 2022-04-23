@@ -1,4 +1,4 @@
-import * as L from "leaflet";
+import * as L from 'leaflet';
 
 export type MinZoomIndicatorOptions = {
   minZoom?: number;
@@ -75,20 +75,20 @@ const minZoomIndicator = L.Control.extend<IMinZoomIndicator>({
       L.DomEvent.preventDefault(event as any);
     }
 
-    if (!this._container || !this._map) throw "Unexpected undefined";
+    if (!this._container || !this._map) throw 'Unexpected undefined';
 
     if (minZoomLevel === -1) {
-      this._container.innerHTML = this.options.minZoomMessageNoLayer + "";
+      this._container.innerHTML = this.options.minZoomMessageNoLayer + '';
     } else {
-      this._container.innerHTML = (this.options.minZoomMessage || "")
-        .replace(/CURRENTZOOM/, this._map.getZoom() + "")
-        .replace(/MINZOOMLEVEL/, minZoomLevel + "");
+      this._container.innerHTML = (this.options.minZoomMessage || '')
+        .replace(/CURRENTZOOM/, this._map.getZoom() + '')
+        .replace(/MINZOOMLEVEL/, minZoomLevel + '');
     }
 
     if (this._map.getZoom() >= minZoomLevel) {
-      this._container.style.display = "none";
+      this._container.style.display = 'none';
     } else {
-      this._container.style.display = "block";
+      this._container.style.display = 'block';
     }
   },
 
@@ -98,11 +98,11 @@ const minZoomIndicator = L.Control.extend<IMinZoomIndicator>({
     this._map.zoomIndicator = this;
 
     this._container = L.DomUtil.create(
-      "div",
-      "leaflet-control-minZoomIndicator"
+      'div',
+      'leaflet-control-minZoomIndicator'
     );
 
-    this._map.on("moveend", this._updateBox, this);
+    this._map.on('moveend', this._updateBox, this);
 
     this._updateBox(null);
 
@@ -112,18 +112,13 @@ const minZoomIndicator = L.Control.extend<IMinZoomIndicator>({
   onRemove(map: L.Map) {
     (L.Control as any).prototype.onRemove.call(this, map);
 
-    map.off(
-      {
-        moveend: this._updateBox
-      },
-      this
-    );
+    map.off('moveend', this._updateBox, this);
 
     this._map = null;
-  }
+  },
 } as IMinZoomIndicator);
 
-declare module "leaflet" {
+declare module 'leaflet' {
   module Control {
     var MinZoomIndicator: typeof minZoomIndicator;
   }

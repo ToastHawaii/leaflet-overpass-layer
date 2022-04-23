@@ -10,7 +10,7 @@ import MinZoomIndicator, {
 } from "./MinZoomIndicator";
 import * as OverPass from "./OverPass";
 
-const overPassLayer = (L.FeatureGroup.extend<L.IOverPassLayer>({
+const overPassLayer = (L.FeatureGroup.extend({
   _responseBoxes: undefined,
   _nextRequest: undefined,
   _map: undefined,

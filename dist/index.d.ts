@@ -3,7 +3,7 @@ import "./OverPassLayer.css";
 import "./MinZoomIndicator";
 import { MapWithZoomIndicator, MinZoomIndicatorOptions } from "./MinZoomIndicator";
 import * as OverPass from "./OverPass";
-declare const overPassLayer: new (options: OverPassLayerOptions) => L.IOverPassLayer & L.FeatureGroup;
+declare const overPassLayer: new (options: OverPassLayerOptions) => L.IOverPassLayer & L.FeatureGroup<any>;
 declare module "leaflet" {
     interface IOverPassLayer {
         _markers?: L.FeatureGroup<any>;
