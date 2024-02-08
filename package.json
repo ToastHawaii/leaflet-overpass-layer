@@ -42,21 +42,21 @@
     ]
   },
   "dependencies": {
-    "@babel/runtime": "7.17.9",
-    "@types/md5": "2.3.2",
-    "@types/leaflet": "1.5.17",
-    "idb": "7.0.1",
+    "@babel/runtime": "7.23.9",
+    "@types/md5": "2.3.5",
+    "@types/leaflet": "1.9.8",
+    "idb": "8.0.0",
     "md5": "2.3.0",
     "js-clipper": "1.0.1",
-    "leaflet": "1.7.1"
+    "leaflet": "1.9.4"
   },
   "devDependencies": {
-    "@babel/core": "7.17.9",
-    "@babel/plugin-proposal-class-properties": "7.16.7",
-    "@babel/plugin-proposal-object-rest-spread": "7.17.3",
-    "@babel/plugin-transform-runtime": "7.17.0",
-    "@babel/preset-env": "7.16.11",
-    "@babel/preset-typescript": "7.16.7",
+    "@babel/core": "7.23.9",
+    "@babel/plugin-proposal-class-properties": "7.18.6",
+    "@babel/plugin-proposal-object-rest-spread": "7.20.7",
+    "@babel/plugin-transform-runtime": "7.23.9",
+    "@babel/preset-env": "7.23.9",
+    "@babel/preset-typescript": "7.23.3",
     "babel-loader": "8.2.5",
     "copy-webpack-plugin": "10.2.4",
     "css-loader": "6.7.1",
