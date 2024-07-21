@@ -1,10 +1,10 @@
-import * as L from "leaflet";
-import "./OverPassLayer.css";
-import "./MinZoomIndicator";
-import { MapWithZoomIndicator, MinZoomIndicatorOptions } from "./MinZoomIndicator";
-import * as OverPass from "./OverPass";
+import * as L from 'leaflet';
+import './OverPassLayer.css';
+import './MinZoomIndicator';
+import { MapWithZoomIndicator, MinZoomIndicatorOptions } from './MinZoomIndicator';
+import * as OverPass from './OverPass';
 declare const overPassLayer: new (options: OverPassLayerOptions) => IOverPassLayer & FeatureGroup<any>;
-declare module "leaflet" {
+declare module 'leaflet' {
     interface IOverPassLayer {
         _markers?: L.FeatureGroup<any>;
         _db: any;

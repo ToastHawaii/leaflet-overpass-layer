@@ -1,16 +1,16 @@
-import * as L from "leaflet";
-import * as ClipperLib from "js-clipper";
-import { openDB } from "idb";
-import "./OverPassLayer.css";
-import "./MinZoomIndicator";
-import * as md5 from "md5";
+import * as L from 'leaflet';
+import * as ClipperLib from 'js-clipper';
+import { openDB } from 'idb';
+import './OverPassLayer.css';
+import './MinZoomIndicator';
+import * as md5 from 'md5';
 import MinZoomIndicator, {
   MapWithZoomIndicator,
-  MinZoomIndicatorOptions
-} from "./MinZoomIndicator";
-import * as OverPass from "./OverPass";
+  MinZoomIndicatorOptions,
+} from './MinZoomIndicator';
+import * as OverPass from './OverPass';
 
-const overPassLayer = (L.FeatureGroup.extend({
+const overPassLayer = L.FeatureGroup.extend({
   _responseBoxes: undefined,
   _nextRequest: undefined,
   _map: undefined,
@@ -27,20 +27,23 @@ const overPassLayer = (L.FeatureGroup.extend({
     debug: false,
     minZoom: 15,
     endPoints: [
-      { url: "https://overpass-api.de/api/", extendQuerySupport: true },
-      { url: "https://overpass.kumi.systems/api/", extendQuerySupport: true },
-      { url: "https://overpass.nchc.org.tw/api/", extendQuerySupport: false },
+      { url: 'https://overpass-api.de/api/', extendQuerySupport: true },
+      { url: 'https://overpass.kumi.systems/api/', extendQuerySupport: true },
       {
-        url: "https://overpass.openstreetmap.ru/cgi/",
-        extendQuerySupport: false
+        url: 'https://overpass.openstreetmap.ru/api/',
+        extendQuerySupport: true,
       },
       {
-        url: "https://overpass.osm.ch/api/",
-        extendQuerySupport: false,
-        bounds: [45.818, 5.9559, 47.8085, 10.4923]
-      }
+        url: 'https://maps.mail.ru/osm/tools/overpass/api',
+        extendQuerySupport: true,
+      },
+      {
+        url: 'https://overpass.osm.ch/api/',
+        extendQuerySupport: true,
+        bounds: [45.818, 5.9559, 47.8085, 10.4923],
+      },
     ],
-    query: "(node[organic];node[fair_trade];node[second_hand];);out qt;",
+    query: '(node[organic];node[fair_trade];node[second_hand];);out qt;',
     loadedBounds: [],
     markerIcon: null,
     timeout: 30, // Seconds
@@ -65,13 +68,14 @@ const overPassLayer = (L.FeatureGroup.extend({
 
         this._ids[e.id] = true;
 
-        if (e.type === "node") {
+        if (e.type === 'node') {
           if (e.lat && e.lon) pos = L.latLng(e.lat, e.lon);
-          else throw "Unexpected undefined";
+          else throw 'Unexpected undefined: e.lat && e.lon';
         } else {
           if (e.center && e.center.lat && e.center.lon)
             pos = L.latLng(e.center.lat, e.center.lon);
-          else throw "Unexpected undefined";
+          else
+            throw 'Unexpected undefined: e.center && e.center.lat && e.center.lon';
         }
 
         if (this.options.markerIcon) {
@@ -79,19 +83,19 @@ const overPassLayer = (L.FeatureGroup.extend({
         } else {
           marker = L.circle(pos, 20, {
             stroke: false,
-            fillColor: "#E54041",
-            fillOpacity: 0.9
+            fillColor: '#E54041',
+            fillOpacity: 0.9,
           });
         }
 
-        if (!e.tags) throw "Unexpected undefined";
+        if (!e.tags) throw 'Unexpected undefined: e.tags';
 
         const popupContent = this._getPoiPopupHTML(e.tags, e.id);
         const popup = L.popup().setContent(popupContent);
         marker.bindPopup(popup);
 
         if (this._markers) this._markers.addLayer(marker);
-        else throw "Unexpected undefined";
+        else throw 'Unexpected undefined: this._markers';
       }
     },
 
@@ -101,25 +105,25 @@ const overPassLayer = (L.FeatureGroup.extend({
 
     minZoomIndicatorEnabled: true,
     minZoomIndicatorOptions: {
-      minZoomMessageNoLayer: "No layer assigned",
+      minZoomMessageNoLayer: 'No layer assigned',
       minZoomMessage:
-        "Current zoom Level: CURRENTZOOM. Data are visible at Level: MINZOOMLEVEL."
-    }
+        'Current zoom Level: CURRENTZOOM. Data are visible at Level: MINZOOMLEVEL.',
+    },
   },
 
   async _initDB() {
     this._db = await openDB(md5(this.options.query), 1, {
       upgrade(db) {
-        db.createObjectStore("cache", { autoIncrement: true });
-      }
+        db.createObjectStore('cache', { autoIncrement: true });
+      },
     });
 
-    let items = await this._db.getAll("cache");
-    let keys = await this._db.getAllKeys("cache");
+    let items = await this._db.getAll('cache');
+    let keys = await this._db.getAllKeys('cache');
 
     items.forEach((item: any, i: any) => {
       if (new Date() > item.expires) {
-        this._db.delete("cache", keys[i]);
+        this._db.delete('cache', keys[i]);
       } else {
         this.options.onSuccess.call(this, item.result);
         this._onRequestLoadCallback(item.bounds);
@@ -150,20 +154,20 @@ const overPassLayer = (L.FeatureGroup.extend({
 
   _getPoiPopupHTML(tags: OverPass.Tags, id: number) {
     let row;
-    const link = document.createElement("a");
-    const table = document.createElement("table");
-    const div = document.createElement("div");
+    const link = document.createElement('a');
+    const table = document.createElement('table');
+    const div = document.createElement('div');
 
     link.href = `https://www.openstreetmap.org/edit?editor=id&node=${id}`;
-    link.appendChild(document.createTextNode("Edit this entry in iD"));
+    link.appendChild(document.createTextNode('Edit this entry in iD'));
 
-    table.style.borderSpacing = "10px";
-    table.style.borderCollapse = "separate";
+    table.style.borderSpacing = '10px';
+    table.style.borderCollapse = 'separate';
 
     for (const key in tags) {
       row = table.insertRow(0);
       row.insertCell(0).appendChild(document.createTextNode(key));
-      row.insertCell(1).appendChild(document.createTextNode(tags[key] + ""));
+      row.insertCell(1).appendChild(document.createTextNode(tags[key] + ''));
     }
 
     div.appendChild(link);
@@ -175,10 +179,10 @@ const overPassLayer = (L.FeatureGroup.extend({
   _buildRequestBox(bounds: L.LatLngBounds) {
     return L.rectangle(bounds, {
       bounds: bounds,
-      color: "#204a87",
+      color: '#204a87',
       stroke: false,
       fillOpacity: 0.1,
-      clickable: false
+      clickable: false,
     } as any);
   },
 
@@ -207,8 +211,8 @@ const overPassLayer = (L.FeatureGroup.extend({
 
     requestBoxes.forEach((box: any) => {
       box.setStyle({
-        color: "black",
-        weight: 2
+        color: 'black',
+        weight: 2,
       });
       this._addResponseBox(box);
     });
@@ -238,9 +242,8 @@ const overPassLayer = (L.FeatureGroup.extend({
       ClipperLib.PolyFillType.pftNonZero
     );
 
-    const solutionExPolygons = ClipperLib.JS.PolyTreeToExPolygons(
-      solutionPolyTree
-    );
+    const solutionExPolygons =
+      ClipperLib.JS.PolyTreeToExPolygons(solutionPolyTree);
 
     if (solutionExPolygons.length === 0) {
       return true;
@@ -261,20 +264,20 @@ const overPassLayer = (L.FeatureGroup.extend({
     return bounds.map((bound: any) => [
       {
         X: bound._southWest.lng * 1000000,
-        Y: bound._southWest.lat * 1000000
+        Y: bound._southWest.lat * 1000000,
       },
       {
         X: bound._southWest.lng * 1000000,
-        Y: bound._northEast.lat * 1000000
+        Y: bound._northEast.lat * 1000000,
       },
       {
         X: bound._northEast.lng * 1000000,
-        Y: bound._northEast.lat * 1000000
+        Y: bound._northEast.lat * 1000000,
       },
       {
         X: bound._northEast.lng * 1000000,
-        Y: bound._southWest.lat * 1000000
-      }
+        Y: bound._southWest.lat * 1000000,
+      },
     ]);
   },
 
@@ -298,24 +301,24 @@ const overPassLayer = (L.FeatureGroup.extend({
   ) {
     const sw = bounds._southWest;
     const ne = bounds._northEast;
-    const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(",");
+    const coordinates = [sw.lat, sw.lng, ne.lat, ne.lng].join(',');
 
     if (!endPoint.extendQuerySupport) {
       query = query.replace(
         /([(;/\s])nw((\[.*])*(\(.*\))*;)/gim,
-        "$1node$2way$2"
+        '$1node$2way$2'
       );
       query = query.replace(
         /([(;/\s])nr((\[.*])*(\(.*\))*;)/gim,
-        "$1node$2relation$2"
+        '$1node$2relation$2'
       );
       query = query.replace(
         /([(;/\s])wr((\[.*])*(\(.*\))*;)/gim,
-        "$1way$2relation$2"
+        '$1way$2relation$2'
       );
     }
 
-    query = query.replace(/(\/\/.*)/g, "");
+    query = query.replace(/(\/\/.*)/g, '');
 
     return `${endPoint.url}interpreter?data=[out:json][timeout:${this.options.timeout}][bbox:${coordinates}];${query}`;
   },
@@ -364,7 +367,7 @@ const overPassLayer = (L.FeatureGroup.extend({
   },
 
   _prepareRequest() {
-    if (!this._map) throw "Unexpected undefined";
+    if (!this._map) throw 'Unexpected undefined: this._map';
     if (this._map.getZoom() < this.options.minZoom) {
       return false;
     }
@@ -431,7 +434,7 @@ const overPassLayer = (L.FeatureGroup.extend({
       this._addRequestBox(this._buildRequestBox(requestBounds));
     }
 
-    request.open("GET", url, true);
+    request.open('GET', url, true);
     request.timeout = this.options.timeout * 1000;
 
     request.ontimeout = () =>
@@ -454,7 +457,7 @@ const overPassLayer = (L.FeatureGroup.extend({
       supportedBounds &&
       !L.latLngBounds([
         [supportedBounds[0], supportedBounds[1]],
-        [supportedBounds[2], supportedBounds[3]]
+        [supportedBounds[2], supportedBounds[3]],
       ]).contains(bounds)
     );
   },
@@ -468,10 +471,10 @@ const overPassLayer = (L.FeatureGroup.extend({
         let expireDate = new Date();
         expireDate.setSeconds(expireDate.getSeconds() + this.options.cacheTTL);
 
-        this._db.put("cache", {
+        this._db.put('cache', {
           result: result,
           bounds: bounds,
-          expires: expireDate
+          expires: expireDate,
         });
       }
 
@@ -555,7 +558,7 @@ const overPassLayer = (L.FeatureGroup.extend({
       this._prepareRequest();
     }
 
-    this._map.on("moveend", this._prepareRequest, this);
+    this._map.on('moveend', this._prepareRequest, this);
   },
 
   onRemove(map: L.Map) {
@@ -563,7 +566,7 @@ const overPassLayer = (L.FeatureGroup.extend({
 
     this._resetData();
 
-    map.off("moveend", this._prepareRequest, this);
+    map.off('moveend', this._prepareRequest, this);
 
     this._map = null;
   },
@@ -585,7 +588,7 @@ const overPassLayer = (L.FeatureGroup.extend({
     this._requestInProgress = false;
 
     if (this._markers) this._markers.clearLayers();
-    else throw "Unexpected undefined";
+    else throw 'Unexpected undefined: this._markers';
 
     if (this.options.debug) {
       this._requestBoxes?.clearLayers();
@@ -595,12 +598,12 @@ const overPassLayer = (L.FeatureGroup.extend({
 
   getData() {
     return this._data;
-  }
-} as L.IOverPassLayer) as any) as new (
+  },
+} as L.IOverPassLayer) as any as new (
   options: OverPassLayerOptions
 ) => L.IOverPassLayer & L.FeatureGroup;
 
-declare module "leaflet" {
+declare module 'leaflet' {
   export interface IOverPassLayer {
     _markers?: L.FeatureGroup<any>;
     _db: any;
