@@ -34,7 +34,7 @@ const overPassLayer = L.FeatureGroup.extend({
         extendQuerySupport: true,
       },
       {
-        url: 'https://maps.mail.ru/osm/tools/overpass/api',
+        url: 'https://maps.mail.ru/osm/tools/overpass/api/',
         extendQuerySupport: true,
       },
       {
@@ -367,7 +367,10 @@ const overPassLayer = L.FeatureGroup.extend({
   },
 
   _prepareRequest() {
-    if (!this._map) throw 'Unexpected undefined: this._map';
+    if (!this._map) {
+      return;
+    }
+
     if (this._map.getZoom() < this.options.minZoom) {
       return false;
     }
