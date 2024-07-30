@@ -28,7 +28,7 @@ const overPassLayer = L.FeatureGroup.extend({
     minZoom: 15,
     endPoints: [
       { url: 'https://overpass-api.de/api/', extendQuerySupport: true },
-      { url: 'https://overpass.kumi.systems/api/', extendQuerySupport: true },
+      { url: 'https://overpass.private.coffee/api/', extendQuerySupport: true },
       {
         url: 'https://overpass.openstreetmap.ru/api/',
         extendQuerySupport: true,

@@ -61,18 +61,21 @@ options: {
   debug: false,
   minZoom: 15,
   endPoints: [
-    { url: "https://overpass-api.de/api/", extendQuerySupport: true },
-    { url: "https://overpass.kumi.systems/api/", extendQuerySupport: true },
-    { url: "https://overpass.nchc.org.tw/api/", extendQuerySupport: false },
-    {
-      url: "https://overpass.openstreetmap.ru/cgi/",
-      extendQuerySupport: false
-    },
-    {
-      url: "https://overpass.osm.ch/api/",
-      extendQuerySupport: false,
-      bounds: [45.818, 5.9559, 47.8085, 10.4923]
-    }
+      { url: 'https://overpass-api.de/api/', extendQuerySupport: true },
+      { url: 'https://overpass.kumi.systems/api/', extendQuerySupport: true },
+      {
+        url: 'https://overpass.openstreetmap.ru/api/',
+        extendQuerySupport: true,
+      },
+      {
+        url: 'https://maps.mail.ru/osm/tools/overpass/api/',
+        extendQuerySupport: true,
+      },
+      {
+        url: 'https://overpass.osm.ch/api/',
+        extendQuerySupport: true,
+        bounds: [45.818, 5.9559, 47.8085, 10.4923],
+      },
   ],
   query: "(node[organic];node[fair_trade];node[second_hand];);out qt;",
   loadedBounds: [],
