@@ -27,7 +27,7 @@ const overPassLayer = L.FeatureGroup.extend({
     debug: false,
     minZoom: 15,
     endPoints: [
-      // { url: 'https://overpass-api.de/api/', extendQuerySupport: true }, Offline Nov. 2026
+      { url: 'https://overpass-api.de/api/', extendQuerySupport: true }, 
       // { url: 'https://overpass.private.coffee/api/', extendQuerySupport: true }, Not working Nov. 2026
       // {
       //   url: 'https://overpass.openstreetmap.ru/api/',false
