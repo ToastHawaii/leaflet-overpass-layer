@@ -27,14 +27,22 @@ const overPassLayer = L.FeatureGroup.extend({
     debug: false,
     minZoom: 15,
     endPoints: [
-      { url: 'https://overpass-api.de/api/', extendQuerySupport: true },
-      { url: 'https://overpass.private.coffee/api/', extendQuerySupport: true },
+      // { url: 'https://overpass-api.de/api/', extendQuerySupport: true }, Offline Nov. 2026
+      // { url: 'https://overpass.private.coffee/api/', extendQuerySupport: true }, Not working Nov. 2026
+      // {
+      //   url: 'https://overpass.openstreetmap.ru/api/',false
+      //   extendQuerySupport: true,
+      // }, Not responding Nov. 2026
       {
-        url: 'https://overpass.openstreetmap.ru/api/',
+        url: 'https://maps.mail.ru/osm/tools/overpass/api/',
         extendQuerySupport: true,
       },
       {
-        url: 'https://maps.mail.ru/osm/tools/overpass/api/',
+        url: 'https://overpass.nextgis.com/my-g6Lus3ul8KSksWqR5cYkrJS2oajFLrwa/api/',
+        extendQuerySupport: true,
+      },
+      {
+        url: 'https://api.fairwaymapper.com/k/fm_comm_eeabb426c19d0f93b0cbf7a442effe8a17331a2c4a5a0ee0fe05c772f4dfd54c/api/',
         extendQuerySupport: true,
       },
       {
@@ -143,7 +151,7 @@ const overPassLayer = L.FeatureGroup.extend({
     // Random endpoint
     if (this.options.endPoints)
       this._endPointsIndex = Math.floor(
-        Math.random() * this.options.endPoints.length
+        Math.random() * this.options.endPoints.length,
       );
     this._loadedBounds = options.loadedBounds || [];
 
@@ -231,7 +239,7 @@ const overPassLayer = L.FeatureGroup.extend({
     (clipper as any).AddPaths(
       subjectClips,
       ClipperLib.PolyType.ptSubject,
-      true
+      true,
     );
     (clipper as any).AddPaths(knownClips, ClipperLib.PolyType.ptClip, true);
 
@@ -239,7 +247,7 @@ const overPassLayer = L.FeatureGroup.extend({
       ClipperLib.ClipType.ctDifference,
       solutionPolyTree,
       ClipperLib.PolyFillType.pftNonZero,
-      ClipperLib.PolyFillType.pftNonZero
+      ClipperLib.PolyFillType.pftNonZero,
     );
 
     const solutionExPolygons =
@@ -285,8 +293,8 @@ const overPassLayer = L.FeatureGroup.extend({
     return clips.map((clip: any) =>
       L.latLngBounds(
         L.latLng(clip[0].Y / 1000000, clip[0].X / 1000000).wrap(),
-        L.latLng(clip[2].Y / 1000000, clip[2].X / 1000000).wrap()
-      )
+        L.latLng(clip[2].Y / 1000000, clip[2].X / 1000000).wrap(),
+      ),
     );
   },
 
@@ -297,7 +305,7 @@ const overPassLayer = L.FeatureGroup.extend({
       bounds?: [number, number, number, number];
     },
     query: string,
-    bounds: any
+    bounds: any,
   ) {
     const sw = bounds._southWest;
     const ne = bounds._northEast;
@@ -306,15 +314,15 @@ const overPassLayer = L.FeatureGroup.extend({
     if (!endPoint.extendQuerySupport) {
       query = query.replace(
         /([(;/\s])nw((\[.*])*(\(.*\))*;)/gim,
-        '$1node$2way$2'
+        '$1node$2way$2',
       );
       query = query.replace(
         /([(;/\s])nr((\[.*])*(\(.*\))*;)/gim,
-        '$1node$2relation$2'
+        '$1node$2relation$2',
       );
       query = query.replace(
         /([(;/\s])wr((\[.*])*(\(.*\))*;)/gim,
-        '$1way$2relation$2'
+        '$1way$2relation$2',
       );
     }
 
@@ -334,7 +342,7 @@ const overPassLayer = L.FeatureGroup.extend({
 
     return L.latLngBounds(
       L.latLng(bounds._southWest.lat, bounds._southWest.lng).wrap(),
-      L.latLng(bounds._northEast.lat, bounds._northEast.lng).wrap()
+      L.latLng(bounds._northEast.lat, bounds._northEast.lng).wrap(),
     );
   },
 
@@ -420,7 +428,7 @@ const overPassLayer = L.FeatureGroup.extend({
     const url = this._buildOverpassUrlFromEndPointAndQuery(
       this.options.endPoints[this._endPointsIndex],
       this.options.query,
-      requestBounds
+      requestBounds,
     );
     const request = new XMLHttpRequest();
     const beforeRequestResult = this.options.beforeRequest.call(this);
@@ -541,7 +549,7 @@ const overPassLayer = L.FeatureGroup.extend({
         this._zoomControl._addLayer(this);
       } else {
         this._zoomControl = new MinZoomIndicator(
-          this.options.minZoomIndicatorOptions
+          this.options.minZoomIndicatorOptions,
         );
 
         this._map.addControl(this._zoomControl);
@@ -603,7 +611,7 @@ const overPassLayer = L.FeatureGroup.extend({
     return this._data;
   },
 } as L.IOverPassLayer) as any as new (
-  options: OverPassLayerOptions
+  options: OverPassLayerOptions,
 ) => L.IOverPassLayer & L.FeatureGroup;
 
 declare module 'leaflet' {
@@ -641,7 +649,7 @@ declare module 'leaflet' {
         bounds?: [number, number, number, number];
       },
       query: string,
-      bounds: any
+      bounds: any,
     ): string;
     _buildLargerBounds(bounds: L.LatLngBounds): L.LatLngBounds;
     _setRequestInProgress(isInProgress: any): void;
