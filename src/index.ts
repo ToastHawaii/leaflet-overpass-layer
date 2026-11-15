@@ -42,10 +42,6 @@ const overPassLayer = L.FeatureGroup.extend({
         extendQuerySupport: true,
       },
       {
-        url: 'https://api.fairwaymapper.com/k/fm_comm_eeabb426c19d0f93b0cbf7a442effe8a17331a2c4a5a0ee0fe05c772f4dfd54c/api/',
-        extendQuerySupport: true,
-      },
-      {
         url: 'https://overpass.osm.ch/api/',
         extendQuerySupport: true,
         bounds: [45.818, 5.9559, 47.8085, 10.4923],
